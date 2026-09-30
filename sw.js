@@ -1,9 +1,12 @@
-/* Game plan board service worker: works offline after the first visit. */
-const VERSION = 'gpb-v1';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
+/* Game plan board service worker: works offline after the first visit and picks up new versions promptly. */
+const VERSION = 'gpb-v2';
+const SHELL = ['./', './index.html', './styles.css?v=v2', './media-db.js?v=v2', './board.js?v=v2', './gestures.js?v=v2',
+  './save-open.js?v=v2', './app.js?v=v2', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+  './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  // cache:'reload' skips the HTTP cache so the new version's files really are new.
+  e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== VERSION + '-fonts').map(k => caches.delete(k)))).then(() => self.clients.claim()));
@@ -13,11 +16,11 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  // Pages: try the network (to pick up updates), fall back to the cached app when offline.
+  // Pages: network first (skipping the HTTP cache) so updates show up; cached app when offline.
   if (req.mode === 'navigate') {
     e.respondWith((async () => {
       try {
-        const res = await Promise.race([fetch(req), timeout(4000)]);
+        const res = await Promise.race([fetch(req, { cache: 'no-cache' }), timeout(4000)]);
         if (res && res.ok) { const c = await caches.open(VERSION); c.put('./index.html', res.clone()); }
         return res;
       } catch (_) {
@@ -34,12 +37,11 @@ self.addEventListener('fetch', e => {
     }));
     return;
   }
-  // Own files: serve from cache, refresh in the background.
+  // Own files: versioned URLs, so cache-first is safe; fall back to the network.
   if (url.origin === self.location.origin) {
     e.respondWith(caches.open(VERSION).then(async c => {
-      const hit = await c.match(req);
-      const net = fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }).catch(() => hit);
-      return hit || net;
+      const hit = await c.match(req); if (hit) return hit;
+      const res = await fetch(req); if (res.ok) c.put(req, res.clone()); return res;
     }));
   }
 });
