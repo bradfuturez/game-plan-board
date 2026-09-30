@@ -114,8 +114,8 @@ async function exportImage() {
     ctx.font = '700 17px "Bricolage Grotesque", system-ui, sans-serif'; ctx.fillStyle = c.title ? V('--card-ink') : V('--card-muted');
     wrapLines(ctx, c.title || 'Untitled', inner).forEach(l => { ctx.fillText(l, 14, y + 1); y += 20.4; });
     y += 6; ctx.fillStyle = 'rgba(210,73,63,.55)'; ctx.fillRect(14, y, inner, 2); y += 8;
-    if (c.notes) { ctx.font = '400 15px "Atkinson Hyperlegible", system-ui, sans-serif';
-      wrapLines(ctx, c.notes, inner).forEach(l => { ctx.fillStyle = V('--card-line'); ctx.fillRect(14, y + 21, inner, 1); ctx.fillStyle = V('--card-ink'); ctx.fillText(l, 14, y + 3); y += 22; }); }
+    if (c.notes) { ctx.font = '400 15px "Atkinson Hyperlegible", system-ui, sans-serif'; ctx.fillStyle = V('--card-ink');
+      paragraphs(c.notes).forEach((para, k) => { if (k) y += 10; wrapLines(ctx, para, inner).forEach(l => { ctx.fillText(l, 14, y + 3); y += 22; }); }); }
     itemsIn(c.id).forEach(it => { const m = itemEls.get(it.id); if (!m) return; const p = offsetIn(m, el); drawMedia(ctx, m, p.x, p.y, m.offsetWidth, m.offsetHeight, V); });
     ctx.restore();
   });

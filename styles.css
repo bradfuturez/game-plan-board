@@ -41,9 +41,15 @@ svg.layer{pointer-events:none}
 .card textarea{display:block;width:100%;margin:0;padding:0;border:0;border-radius:0;background:transparent;color:inherit;resize:none;overflow:hidden;outline:none;pointer-events:none;-webkit-user-select:text;user-select:text}
 .card.editing textarea{pointer-events:auto;cursor:text}
 .card .ct{margin:0 0 6px;padding-bottom:6px;border-bottom:2px solid rgba(210,73,63,.55);font-family:var(--display);font-weight:700;font-size:17px;line-height:1.2;overflow-wrap:anywhere}
-.card .cn{font-size:15px;line-height:22px;min-height:22px;overflow-wrap:anywhere;background-image:repeating-linear-gradient(transparent 0 21px,var(--card-line) 21px 22px);background-attachment:local}
+.card .cn{font-size:15px;line-height:22px;min-height:22px;overflow-wrap:anywhere}
+/* notes shown as flowing paragraphs (display only; the textarea keeps the raw text and is shown while typing) */
+.card .cv{font-size:15px;line-height:22px;overflow-wrap:anywhere}
+.card .cv p{margin:0 0 10px}
+.card .cv p:last-child{margin-bottom:0}
+.card .cv:empty,.card:not(.editing) .cn,.card.editing .cv{display:none}
+.card.measure{visibility:hidden;left:-9999px;top:0;pointer-events:none;transform:none;position:absolute}
+.card.measure .ct{display:block}
 .card textarea::placeholder{color:var(--card-muted);opacity:1;font-weight:500}
-.card:not(.editing) .cn.empty{display:none}
 .card.dragging{box-shadow:0 6px 10px var(--shadow),0 24px 40px -10px var(--shadow);z-index:5}
 .card.linking{box-shadow:0 0 0 4px var(--focus),0 10px 22px -8px var(--shadow)}
 .card.editing{box-shadow:0 0 0 3px var(--focus),0 10px 22px -8px var(--shadow)}

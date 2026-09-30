@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v2">
+<link rel="stylesheet" href="styles.css?v=v3">
 </head>
 <body>
 <header>
@@ -66,6 +66,7 @@
       <button id="mImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Import photos, videos, files<small>They land in the middle of the screen</small></span></button>
       <button id="mImage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export image<small>Saves a picture (PNG) of the board to Downloads</small></span></button>
       <button id="mFit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Show whole board<small>Zoom so everything fits on screen</small></span></button>
+      <button id="mBreaks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg><span id="mBreaksLabel">Keep my line breaks: Off<small>Off: notes flow as paragraphs (blank line = new paragraph)</small></span></button>
       <button id="mTheme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg><span id="mThemeLabel">Light theme<small>Switch the board colours</small></span></button>
       <button id="mInstall" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2"/><path d="M12 7v7M9 11l3 3 3-3"/></svg><span>Install app<small>Put Game plan board on your home screen</small></span></button>
       <button id="mHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7M12 17h.01"/></svg><span>How to use</span></button>
@@ -81,6 +82,7 @@
     <h2 id="helpHead">How to use</h2>
     <p><b>Menu:</b> hold your finger on an empty spot for half a second. Choose <b>New window</b> to put a window there, or <b>Import photos, videos, files</b> to bring things in from your gallery.</p>
     <p><b>Type:</b> tap a window and start typing. Tap the empty board when you're done. <b>Move a window:</b> press and drag it.</p>
+    <p><b>Paragraphs:</b> leave an empty line between paragraphs. Windows widen by themselves as you write more, so everything stays visible. To keep every line break exactly as typed, turn on <b>More → Keep my line breaks</b>.</p>
     <p><b>Put a photo in a window:</b> drag it onto the window (the window lights up) and let go. The window grows to fit. Drag it out again to take it back out. Tap a photo or video to see it big or play it.</p>
     <p><b>Orange rope:</b> double-tap a window (it glows orange), then double-tap another window. Tap the empty board to cancel.</p>
     <p><b>Red string:</b> tap a window's gold pin, then tap another window. <b>Cut a string or rope:</b> tap it and choose Cut (you can Undo).</p>
@@ -104,10 +106,10 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v2" defer></script>
-<script src="board.js?v=v2" defer></script>
-<script src="gestures.js?v=v2" defer></script>
-<script src="save-open.js?v=v2" defer></script>
-<script src="app.js?v=v2" defer></script>
+<script src="media-db.js?v=v3" defer></script>
+<script src="board.js?v=v3" defer></script>
+<script src="gestures.js?v=v3" defer></script>
+<script src="save-open.js?v=v3" defer></script>
+<script src="app.js?v=v3" defer></script>
 </body>
 </html>

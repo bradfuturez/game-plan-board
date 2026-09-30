@@ -70,7 +70,40 @@ addEventListener('pagehide', persist);
 document.addEventListener('visibilitychange', () => { if (document.hidden) persist(); });
 
 /* ---------- sizes ---------- */
-function cardW(c) { const n = itemsIn(c.id).length; return n === 0 ? 176 : n === 1 ? 230 : n <= 4 ? 310 : 420; }
+// A window is as wide as it needs to be so that everything shows without being a skinny column:
+// the narrowest width whose height is at most ~1.5x the width (up to 560px), and never narrower than its media need.
+// Nothing is stored: sizes are recomputed whenever a board loads, so old boards get the new shape automatically.
+let keepBreaks = localStorage.getItem('gpb.breaks') === '1';
+const WIDTHS = [176, 208, 240, 280, 320, 360, 420, 480, 560], MAX_W = 560;
+function mediaW(c) { const n = itemsIn(c.id).length; return n === 0 ? 176 : n === 1 ? 230 : n <= 4 ? 310 : 420; }
+// Notes shown as flowing paragraphs: blank lines separate paragraphs; single line breaks flow as normal text
+// (unless "Keep my line breaks" is on). Only the display changes; the typed text is kept exactly as typed.
+function paragraphs(text) {
+  return String(text).replace(/\r/g, '').split(/\n[ \t]*\n+/).map(p => p.replace(/^\s*\n|\s+$/g, '')).filter(p => p.trim())
+    .map(p => keepBreaks ? p : p.replace(/[ \t]*\n[ \t]*/g, ' '));
+}
+const paraHTML = text => paragraphs(text).map(p => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('');
+let measurer = null; const sizeCache = new Map();
+function textH(c, w) { // height of title + paragraphs at card width w, measured off-screen
+  if (!measurer) { measurer = document.createElement('div'); measurer.className = 'card measure'; measurer.setAttribute('aria-hidden', 'true'); measurer.innerHTML = '<div class="ct"></div><div class="cv"></div>'; document.body.appendChild(measurer); }
+  measurer.style.width = w + 'px';
+  measurer.firstChild.textContent = c.title || 'Title'; measurer.lastChild.innerHTML = paraHTML(c.notes);
+  return measurer.offsetHeight;
+}
+function mediaH(c, w) {
+  const its = itemsIn(c.id), m = its.filter(i => i.kind !== 'file').length, f = its.length - m; if (!its.length) return 0;
+  const cols = m <= 1 ? 1 : m <= 4 ? 2 : 3, cell = (w - 28 - 6 * (cols - 1)) / cols;
+  return 10 + Math.ceil(m / cols) * (cell + 6) + f * 46;
+}
+function cardW(c) {
+  const key = c.title + '\u0000' + c.notes + '\u0000' + itemsIn(c.id).length + keepBreaks;
+  const hit = sizeCache.get(c.id); if (hit && hit.key === key) return hit.w;
+  const min = mediaW(c); let w = MAX_W;
+  for (const cand of WIDTHS) { if (cand < min) continue; if (textH(c, cand) + mediaH(c, cand) <= 1.5 * cand) { w = cand; break; } }
+  w = Math.max(w, min);
+  sizeCache.set(c.id, { key, w }); return w;
+}
+function resetSizes() { sizeCache.clear(); }
 function cardCols(c) { const n = itemsIn(c.id).filter(i => i.kind !== 'file').length; return n <= 1 ? 1 : n <= 4 ? 2 : 3; }
 const cardH = c => cardEls.get(c.id)?.offsetHeight || 116;
 const pinPos = c => ({ x: c.x + cardW(c) / 2, y: c.y + PIN_Y });
@@ -83,7 +116,7 @@ function makeCard(c) {
   const el = document.createElement('div');
   el.className = 'card'; el.dataset.id = c.id;
   el.innerHTML = '<textarea class="ct" rows="1" maxlength="120" placeholder="Title" enterkeyhint="next" aria-label="Window title"></textarea>' +
-    '<textarea class="cn" rows="1" placeholder="Type notes…" aria-label="Window notes"></textarea><div class="mbox"></div>';
+    '<textarea class="cn" rows="1" placeholder="Type notes…" aria-label="Window notes"></textarea><div class="cv"></div><div class="mbox"></div>';
   el.querySelector('.ct').value = c.title; el.querySelector('.cn').value = c.notes;
   cardsL.appendChild(el); cardEls.set(c.id, el);
   const pin = document.createElement('button');
@@ -95,8 +128,10 @@ function layoutCard(c) {
   const el = cardEls.get(c?.id); if (!el) return;
   el.style.width = cardW(c) + 'px';
   el.querySelector('.mbox').style.gridTemplateColumns = `repeat(${cardCols(c)},1fr)`;
-  el.querySelector('.cn').classList.toggle('empty', !c.notes);
-  grow(el.querySelector('.ct')); grow(el.querySelector('.cn'));
+  const cn = el.querySelector('.cn');
+  cn.classList.toggle('empty', !c.notes);
+  el.querySelector('.cv').innerHTML = paraHTML(c.notes);
+  grow(el.querySelector('.ct')); grow(cn);
   posCard(c);
 }
 function posCard(c) {

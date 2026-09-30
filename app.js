@@ -82,6 +82,8 @@ $('#moreBtn').addEventListener('click', () => showSheet('#menuSheet'));
 $('#mImport').addEventListener('click', () => { hideSheetNow(); if (history.state && history.state.sheet) history.back(); pickMedia(viewCenter()); });
 $('#mImage').addEventListener('click', () => { closeSheet(); setTimeout(exportImage, 50); });
 $('#mFit').addEventListener('click', () => { closeSheet(); fit(); });
+function breaksLabel() { $('#mBreaksLabel').innerHTML = 'Keep my line breaks: ' + (keepBreaks ? 'On' : 'Off') + '<small>' + (keepBreaks ? 'On: every line break shows as typed' : 'Off: notes flow as paragraphs (blank line = new paragraph)') + '</small>'; }
+$('#mBreaks').addEventListener('click', () => { keepBreaks = !keepBreaks; localStorage.setItem('gpb.breaks', keepBreaks ? '1' : '0'); breaksLabel(); S.cards.forEach(layoutCard); renderThreads(); closeSheet(); toast(keepBreaks ? 'Line breaks kept as typed' : 'Notes flow as paragraphs'); });
 $('#mTheme').addEventListener('click', () => { toggleTheme(); closeSheet(); });
 $('#mHelp').addEventListener('click', () => showSheet('#helpSheet'));
 $('#mInstall').addEventListener('click', () => { closeSheet(); if (installEvt) { installEvt.prompt(); installEvt = null; $('#mInstall').hidden = true; } });
@@ -107,11 +109,11 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
 }
 
 /* ---------- start ---------- */
-applyTheme();
+applyTheme(); breaksLabel();
 matchMedia('(prefers-color-scheme: light)').addEventListener?.('change', applyTheme);
 const firstRun = !localStorage.getItem(KEY);
 renderAll();
 if (firstRun) persist();
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { S.cards.forEach(layoutCard); renderThreads(); if (firstRun) { fit(false); persist(); } });
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resetSizes(); S.cards.forEach(layoutCard); renderThreads(); if (firstRun) { fit(false); persist(); } });
 setTimeout(() => MDB.cleanup(S.items.map(i => i.id)), 1500);
 window.__gpb = { get state() { return S; }, MDB }; // for testing
