@@ -151,3 +151,7 @@ svg.layer{pointer-events:none}
 #toast button{flex:none;min-height:40px;padding:0 14px;border-radius:10px;border:0;background:#E8B04B;color:#23262B;font-weight:700}
 #toast button[hidden]{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.pass-msg{margin:-6px 0 14px;font-size:15px;line-height:1.45;color:var(--chrome-muted)}
+.pass-msg.bad{color:#FF8A7A;font-weight:700}
+#toast .spin{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gpbspin .8s linear infinite}
+@keyframes gpbspin{to{transform:rotate(360deg)}}

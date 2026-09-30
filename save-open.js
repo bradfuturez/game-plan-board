@@ -14,6 +14,11 @@ function download(blob, name) {
 const blobToDataURL = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
 const mb = n => (n / 1048576).toFixed(n > 10485760 ? 0 : 1) + ' MB';
 
+// The one board serializer: SAVE embeds media as data: URLs; Update to GitHub passes file references instead.
+function boardEnvelope(media, extra) {
+  return Object.assign({ app: 'game-plan-board', version: 2, savedAt: new Date().toISOString(),
+    board: { title: S.title, cards: S.cards, threads: S.threads, items: S.items, view: S.view }, media }, extra || {});
+}
 async function saveFile() {
   persist();
   const total = S.items.reduce((s, i) => s + (i.size || 0), 0);
@@ -23,8 +28,7 @@ async function saveFile() {
   for (const it of S.items) {
     try { const b = await MDB.get(it.id); if (b) media[it.id] = await blobToDataURL(b); else missing++; } catch (e) { missing++; }
   }
-  const data = { app: 'game-plan-board', version: 2, savedAt: new Date().toISOString(),
-    board: { title: S.title, cards: S.cards, threads: S.threads, items: S.items, view: S.view }, media };
+  const data = boardEnvelope(media);
   const name = `game-plan-board-${stamp()}.json`;
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
   download(blob, name);
