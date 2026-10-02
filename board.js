@@ -184,7 +184,7 @@ function renderThreads() {
     const orange = t.kind === 'orange';
     const p = orange ? threadPath(centerPos(A), centerPos(B)) : threadPath(pinPos(A), pinPos(B));
     h += `<path data-t="${i}" d="${p}"/>`;
-    v += `<path class="shd" d="${p}"/>` + (orange ? `<path class="rope" d="${p}"/><path class="rope2" d="${p}"/>` : `<path class="str" d="${p}"/>`);
+    v += `<path class="shd" d="${p}"/>` + (orange ? `<path class="rope" d="${p}"/><path class="rope2" d="${p}"/>` : `<path class="glw" d="${p}"/><path class="glw2" d="${p}"/><path class="str" d="${p}"/><path class="hot" d="${p}"/>`);
   });
   if (band && byId(band.from)) { const a = centerPos(byId(band.from)); v += `<path class="band" d="M${a.x.toFixed(1)} ${a.y.toFixed(1)} L${band.pt.x.toFixed(1)} ${band.pt.y.toFixed(1)}"/>`; }
   hitsL.innerHTML = h; threadsL.innerHTML = v;

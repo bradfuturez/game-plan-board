@@ -1,4 +1,4 @@
-:root{--canvas:#1B2430;--dot:#2E3A4A;--chrome:#222D3B;--chrome-line:#3A4858;--chrome-ink:#E6EAF0;--chrome-muted:#9BA7B6;--card:#F2EDE1;--card-ink:#23262B;--card-muted:#6B6A66;--card-line:#D9D1BF;--thread:#D2493F;--pin:#E8B04B;--focus:#E8B04B;--display:'Bricolage Grotesque',system-ui,sans-serif;--body:'Atkinson Hyperlegible',system-ui,sans-serif;
+:root{--canvas:#1B2430;--dot:#2E3A4A;--chrome:#222D3B;--chrome-line:#3A4858;--chrome-ink:#E6EAF0;--chrome-muted:#9BA7B6;--card:#F2EDE1;--card-ink:#23262B;--card-muted:#6B6A66;--card-line:#D9D1BF;--thread:#FF3B2F;--thread-glow:255,48,36;--pin:#E8B04B;--focus:#E8B04B;--display:'Bricolage Grotesque',system-ui,sans-serif;--body:'Atkinson Hyperlegible',system-ui,sans-serif;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
   --shadow:rgba(0,0,0,.45);color-scheme:dark}
 @media (prefers-color-scheme:light){
@@ -28,7 +28,11 @@ header{display:flex;align-items:center;gap:8px;padding:calc(6px + var(--sat)) 8p
 .layer{position:absolute;left:0;top:0;width:1px;height:1px;overflow:visible}
 svg.layer{pointer-events:none}
 #hits path{pointer-events:stroke;stroke:transparent;stroke-width:26;fill:none;stroke-linecap:round;cursor:pointer}
-#threads .str{stroke:var(--thread);stroke-width:3;fill:none;stroke-linecap:round}
+#threads .str{stroke:var(--thread);stroke-width:5;fill:none;stroke-linecap:round}
+/* glowing red string: two wide translucent strokes under a bright core (no SVG filter, so it stays cheap on phones) */
+#threads .glw{stroke:rgba(var(--thread-glow),.16);stroke-width:18;fill:none;stroke-linecap:round}
+#threads .glw2{stroke:rgba(var(--thread-glow),.34);stroke-width:10;fill:none;stroke-linecap:round}
+#threads .hot{stroke:#FFB4AA;stroke-width:1.6;fill:none;stroke-linecap:round;opacity:.85}
 #threads .shd{stroke:rgba(0,0,0,.22);stroke-width:4;fill:none;stroke-linecap:round;transform:translate(2px,5px)}
 
 #threads .rope{stroke:#FF8A1F;stroke-width:5;fill:none;stroke-linecap:round}

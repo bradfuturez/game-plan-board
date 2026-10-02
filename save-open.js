@@ -106,7 +106,9 @@ async function exportImage() {
     const o = t.kind === 'orange', a = o ? centerPos(A) : pinPos(A), c = o ? centerPos(B) : pinPos(B);
     const sag = Math.min(70, Math.hypot(c.x - a.x, c.y - a.y) * 0.16);
     const draw = (dx, dy, col, w) => { ctx.beginPath(); ctx.moveTo(a.x + dx, a.y + dy); ctx.quadraticCurveTo((a.x + c.x) / 2 + dx, (a.y + c.y) / 2 + sag + dy, c.x + dx, c.y + dy); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); };
-    draw(2, 5, 'rgba(0,0,0,.22)', 4); draw(0, 0, o ? '#FF8A1F' : V('--thread'), o ? 5 : 3);
+    draw(2, 5, 'rgba(0,0,0,.22)', 4);
+    if (o) draw(0, 0, '#FF8A1F', 5);
+    else { const g = V('--thread-glow'); draw(0, 0, `rgba(${g},.16)`, 18); draw(0, 0, `rgba(${g},.34)`, 10); draw(0, 0, V('--thread'), 5); draw(0, 0, 'rgba(255,180,170,.85)', 1.6); }
   });
   // 2) windows with their text and media (drawn straight, without the tilt)
   S.cards.forEach(c => {
