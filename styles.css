@@ -159,3 +159,15 @@ svg.layer{pointer-events:none}
 .pass-msg.bad{color:#FF8A7A;font-weight:700}
 #toast .spin{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gpbspin .8s linear infinite}
 @keyframes gpbspin{to{transform:rotate(360deg)}}
+/* DirectShare: red glow when bots have sent something */
+#moreBtn{position:relative}
+.ds-dot{position:absolute;top:6px;right:calc(50% - 22px);width:12px;height:12px;border-radius:50%;background:#FF3B2F;box-shadow:0 0 0 2px var(--chrome),0 0 10px 2px rgba(255,59,47,.8);animation:dsdot 1.4s ease-in-out infinite}
+.ds-dot[hidden]{display:none}
+@keyframes dsdot{50%{transform:scale(1.25);box-shadow:0 0 0 2px var(--chrome),0 0 16px 5px rgba(255,59,47,.9)}}
+.menu-list button.ds-box{position:relative}
+.menu-list button.ds-box > span{flex:1;min-width:0}
+.menu-list button.ds-mail{border:2px solid #FF3B2F;color:var(--chrome-ink);background:rgba(255,59,47,.08);box-shadow:0 0 0 3px rgba(255,59,47,1),0 0 22px 7px rgba(255,59,47,.6);animation:dsglow 1.5s ease-in-out infinite}
+.menu-list button.ds-mail svg{color:#FF3B2F}
+@keyframes dsglow{0%,100%{box-shadow:0 0 0 1px rgba(255,59,47,.9),0 0 10px 2px rgba(255,59,47,.45)}50%{box-shadow:0 0 0 3px rgba(255,59,47,1),0 0 22px 7px rgba(255,59,47,.6),0 0 44px 12px rgba(255,59,47,.25)}}
+.ds-badge{flex:none;min-width:26px;height:26px;padding:0 8px;border-radius:13px;background:#FF3B2F;color:#fff;font-size:14px;font-weight:700;display:grid;place-items:center;box-shadow:0 0 10px rgba(255,59,47,.7)}
+.ds-badge[hidden]{display:none}

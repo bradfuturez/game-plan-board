@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v5">
+<link rel="stylesheet" href="styles.css?v=v6">
 </head>
 <body>
 <header>
@@ -49,7 +49,7 @@
   <button class="tb add" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add window</button>
   <button class="tb save" id="saveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>SAVE</button>
   <button class="tb" id="openBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Open</button>
-  <button class="tb" id="moreBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>More</button>
+  <button class="tb" id="moreBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>More<span class="ds-dot" id="dsDot" hidden></span></button>
 </nav>
 <input type="file" id="fileInput" accept=".json,application/json" hidden>
 <input type="file" id="mediaInput" multiple accept="image/*,video/*,*/*" hidden>
@@ -63,6 +63,7 @@
     <div class="grab"></div>
     <h2 id="menuHead">More</h2>
     <div class="menu-list">
+      <button id="mDirect" class="ds-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l3-8h12l3 8v6H3z"/><path d="M3 13h5l1.5 2.5h5L16 13h5"/></svg><span>DirectShare<small id="mDirectSub">No new mail. Things your bots send show up here</small></span><b class="ds-badge" id="dsBadge" hidden>0</b></button>
       <button id="mGitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.5 1.5A3.8 3.8 0 0 1 17.5 18"/><path d="M12 12v8M9 15l3-3 3 3"/></svg><span>Update to GitHub<small id="mGitHubSub">Sends your board so your assistant can see it</small></span></button>
       <button id="mImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.6"/></svg><span>Import photos, videos, files<small>They land in the middle of the screen</small></span></button>
       <button id="mImage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg><span>Export image<small>Saves a picture (PNG) of the board to Downloads</small></span></button>
@@ -102,6 +103,7 @@
     <p><b>Move around:</b> drag the empty board. <b>Zoom:</b> pinch with two fingers, or use the + and − buttons.</p>
     <p><b>Your work saves itself</b> on this phone, photos and videos too. Press <b>SAVE</b> to also put a copy file in your phone's <b>Downloads</b> folder (it includes your photos and videos). Use <b>Open</b> to load one back.</p>
     <p><b>Update to GitHub</b> (in More) sends your whole board, photos and videos included, to your private GitHub so your assistant can read it. The first time, it asks for your passcode.</p>
+    <p><b>DirectShare</b> (in More) is your mailbox from your bots: when they send you a note, photo, video or file, the DirectShare box glows red and <b>More</b> gets a red dot. Tap DirectShare and each item lands in its own window in the middle of the screen. Move them like any other window.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
@@ -119,11 +121,12 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v5" defer></script>
-<script src="board.js?v=v5" defer></script>
-<script src="gestures.js?v=v5" defer></script>
-<script src="save-open.js?v=v5" defer></script>
-<script src="app.js?v=v5" defer></script>
-<script src="github-sync.js?v=v5" defer></script>
+<script src="media-db.js?v=v6" defer></script>
+<script src="board.js?v=v6" defer></script>
+<script src="gestures.js?v=v6" defer></script>
+<script src="save-open.js?v=v6" defer></script>
+<script src="app.js?v=v6" defer></script>
+<script src="github-sync.js?v=v6" defer></script>
+<script src="directshare.js?v=v6" defer></script>
 </body>
 </html>

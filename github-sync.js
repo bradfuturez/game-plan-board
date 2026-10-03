@@ -40,9 +40,10 @@ async function relay(path, body, pass, isJson = true) {
 }
 
 /* ---------- passcode sheet (asked once, then remembered on this phone) ---------- */
-function askPasscode(wrong) {
+function askPasscode(wrong, okLabel) {
   return new Promise(resolve => {
     const sh = $('#passSheet'), inp = $('#passInput'), msg = $('#passMsg');
+    sh.querySelector('button[type=submit]').textContent = okLabel || 'Send to GitHub';
     msg.textContent = wrong ? "That passcode didn't work. Please check it and try again." : 'You only need to do this once on this phone.';
     msg.classList.toggle('bad', !!wrong);
     inp.value = '';
