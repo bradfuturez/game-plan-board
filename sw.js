@@ -1,7 +1,7 @@
 /* Game plan board service worker: works offline after the first visit and picks up new versions promptly. */
-const VERSION = 'gpb-v6';
-const SHELL = ['./', './index.html', './styles.css?v=v6', './media-db.js?v=v6', './board.js?v=v6', './gestures.js?v=v6',
-  './save-open.js?v=v6', './app.js?v=v6', './github-sync.js?v=v6', './directshare.js?v=v6', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+const VERSION = 'gpb-v6.1';
+const SHELL = ['./', './index.html', './styles.css?v=v6.1', './media-db.js?v=v6.1', './board.js?v=v6.1', './gestures.js?v=v6.1',
+  './save-open.js?v=v6.1', './app.js?v=v6.1', './github-sync.js?v=v6.1', './directshare.js?v=v6.1', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
 
 self.addEventListener('install', e => {

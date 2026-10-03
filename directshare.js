@@ -107,11 +107,12 @@ async function dsDeliver() {
       }
       layoutCard(c); made.push(c); placed.push(m.id);
     }
-    // centre the new windows in the current view, slightly staggered so each one shows
-    const k0 = (made.length - 1) / 2;
+    // centre the new windows in the current view, staggered so every title stays readable (later ones sit on top)
+    const k0 = (made.length - 1) / 2, dy = made.length > 1 ? Math.min(62, 320 / (made.length - 1)) : 0;
+    const stackH = Math.max(...made.map((c, k) => k * dy + cardH(c))), top = center.y - stackH / 2;
     made.forEach((c, k) => {
-      c.x = Math.round(center.x - cardW(c) / 2 + (k - k0) * 26);
-      c.y = Math.round(center.y - cardH(c) / 2 + (k - k0) * 30);
+      c.x = Math.round(center.x - cardW(c) / 2 + (k - k0) * 22);
+      c.y = Math.round(top + k * dy);
       posCard(c);
     });
     renderThreads();
