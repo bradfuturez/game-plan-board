@@ -2,7 +2,7 @@
    Plain scripts share top-level names, loaded in order: media-db, board, gestures, save-open, app. */
 'use strict';
 const KEY = 'gpb.board.v1', THEME_KEY = 'gpb.theme';
-const PIN_Y = 12, MINZ = 0.25, MAXZ = 2.5, GRID = 24;
+const PIN_Y = 12, MINZ = 0.05, MAXZ = 2.5, GRID = 24;
 const $ = s => document.querySelector(s);
 const stage = $('#stage'), world = $('#world'), cardsL = $('#cards'), pinsL = $('#pins'), hitsL = $('#hits'), threadsL = $('#threads'), mediaL = $('#media');
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -210,7 +210,8 @@ function renderAll() {
 function applyView() {
   const { x, y, z } = S.view;
   world.style.transform = `translate(${x}px,${y}px) scale(${z})`;
-  stage.style.backgroundSize = `${GRID * z}px ${GRID * z}px`;
+  let g = GRID * z; while (g < 12) g *= 4; // keep the grid readable when zoomed far out
+  stage.style.backgroundSize = `${g}px ${g}px`;
   stage.style.backgroundPosition = `${x}px ${y}px`;
 }
 function screenToWorld(cx, cy) { const r = stage.getBoundingClientRect(), v = S.view; return { x: (cx - r.left - v.x) / v.z, y: (cy - r.top - v.y) / v.z }; }
