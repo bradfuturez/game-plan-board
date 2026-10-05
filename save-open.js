@@ -17,7 +17,8 @@ const mb = n => (n / 1048576).toFixed(n > 10485760 ? 0 : 1) + ' MB';
 // The one board serializer: SAVE embeds media as data: URLs; Update to GitHub passes file references instead.
 function boardEnvelope(media, extra) {
   return Object.assign({ app: 'game-plan-board', version: 2, savedAt: new Date().toISOString(),
-    board: { title: S.title, cards: S.cards, threads: S.threads, items: S.items, view: S.view }, media }, extra || {});
+    board: { title: S.title, cards: S.cards, threads: S.threads, items: S.items, view: S.view }, media,
+    botResponses: typeof brExport === 'function' ? brExport() : [] }, extra || {});
 }
 async function saveFile() {
   persist();

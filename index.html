@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.2">
+<link rel="stylesheet" href="styles.css?v=v6.3">
 </head>
 <body>
 <header>
@@ -49,6 +49,7 @@
   <button class="tb add" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Add window</button>
   <button class="tb save" id="saveBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>SAVE</button>
   <button class="tb" id="openBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Open</button>
+  <button class="tb br-tab" id="brBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 7V4M9 12h.01M15 12h.01M9.5 15.5h5"/></svg><span class="tb-l">Bot<wbr>Response</span><b class="br-badge" id="brBadge" hidden>0</b></button>
   <button class="tb" id="moreBtn" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>More<span class="ds-dot" id="dsDot" hidden></span></button>
 </nav>
 <input type="file" id="fileInput" accept=".json,application/json" hidden>
@@ -88,6 +89,17 @@
   </div>
 </form>
 
+<div class="sheet" id="brSheet" hidden role="dialog" aria-modal="true" aria-labelledby="brHead">
+  <div class="backdrop" data-close></div>
+  <div class="panel br-panel">
+    <div class="grab"></div>
+    <h2 id="brHead">BotResponse</h2>
+    <p class="br-intro">Your bots' changes to their copy of your board. Check each one against yours so you're on the same page.</p>
+    <div id="brList"></div>
+    <div class="row"><button class="btn" data-close>Close</button></div>
+  </div>
+</div>
+
 <div class="sheet" id="helpSheet" hidden role="dialog" aria-modal="true" aria-labelledby="helpHead">
   <div class="backdrop" data-close></div>
   <div class="panel help">
@@ -104,6 +116,7 @@
     <p><b>Your work saves itself</b> on this phone, photos and videos too. Press <b>SAVE</b> to also put a copy file in your phone's <b>Downloads</b> folder (it includes your photos and videos). Use <b>Open</b> to load one back.</p>
     <p><b>Update to GitHub</b> (in More) sends your whole board, photos and videos included, to your private GitHub so your assistant can read it. The first time, it asks for your passcode.</p>
     <p><b>DirectShare</b> (in More) is your mailbox from your bots: when they send you a note, photo, video or file, the DirectShare box glows red and <b>More</b> gets a red dot. Tap DirectShare and each item lands in its own window in the middle of the screen. Move them like any other window.</p>
+    <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Your answer goes back to the bot.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
@@ -121,12 +134,13 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.2" defer></script>
-<script src="board.js?v=v6.2" defer></script>
-<script src="gestures.js?v=v6.2" defer></script>
-<script src="save-open.js?v=v6.2" defer></script>
-<script src="app.js?v=v6.2" defer></script>
-<script src="github-sync.js?v=v6.2" defer></script>
-<script src="directshare.js?v=v6.2" defer></script>
+<script src="media-db.js?v=v6.3" defer></script>
+<script src="board.js?v=v6.3" defer></script>
+<script src="gestures.js?v=v6.3" defer></script>
+<script src="save-open.js?v=v6.3" defer></script>
+<script src="app.js?v=v6.3" defer></script>
+<script src="github-sync.js?v=v6.3" defer></script>
+<script src="directshare.js?v=v6.3" defer></script>
+<script src="botresponse.js?v=v6.3" defer></script>
 </body>
 </html>
