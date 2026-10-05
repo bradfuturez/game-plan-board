@@ -215,3 +215,24 @@ svg.layer{pointer-events:none}
 .br-result small{display:block;font-size:13px;color:var(--card-muted);margin-top:2px}
 .br-r-yes{background:rgba(46,158,91,.14);color:#1F6E40}
 .br-r-no{background:rgba(201,55,44,.12);color:#9A2820}
+/* BotResponse attachments */
+.br-atts{display:flex;flex-direction:column;gap:10px;margin:0 0 12px}
+.br-att{margin:0}
+.br-att figcaption{font-size:13px;color:var(--card-muted);margin-top:4px;overflow-wrap:anywhere}
+.br-img{display:block;width:100%;padding:0;border:0;border-radius:6px;overflow:hidden;background:#11161E;cursor:zoom-in}
+.br-img img{display:block;width:100%;height:auto;max-height:300px;object-fit:contain}
+.br-vid{display:block;width:100%;max-height:320px;border-radius:6px;background:#000}
+.br-ph{display:block;width:100%;min-height:64px;padding:10px 12px;border-radius:8px;border:1px dashed var(--card-line);background:rgba(0,0,0,.04);color:var(--card-ink);text-align:left;font-size:15px}
+.br-ph small{display:block;font-size:13px;color:var(--card-muted);margin-top:2px}
+.br-chip{text-decoration:none;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 14px;border-radius:12px;border:1px solid var(--card-line);background:rgba(0,0,0,.05);color:var(--card-ink);font-weight:700;font-size:15px;text-align:left;overflow-wrap:anywhere}
+.br-chip svg{width:26px;height:26px;flex:none;color:#B07A10}
+.br-chip span{min-width:0}
+.br-chip small{display:block;font-weight:400;font-size:13px;color:var(--card-muted)}
+.br-chip:active,.br-img:active{filter:brightness(.92)}
+#brLight{position:fixed;inset:0;z-index:70;background:#05080C;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:calc(12px + var(--sat)) 12px calc(14px + var(--sab))}
+#brLight[hidden]{display:none}
+#brLight img{max-width:100%;max-height:calc(100% - 90px);object-fit:contain;border-radius:4px}
+.br-light-bar{display:flex;align-items:center;gap:10px;width:100%;max-width:560px}
+.br-light-bar span{flex:1;min-width:0;color:#E6EAF0;font-size:14px;overflow-wrap:anywhere}
+.br-light-bar .btn{flex:none;min-width:104px;color:#E6EAF0;border-color:#3A4858}
+.br-light-bar .btn.primary{color:#23262B}

@@ -115,5 +115,5 @@ const firstRun = !localStorage.getItem(KEY);
 renderAll();
 if (firstRun) persist();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { resetSizes(); S.cards.forEach(layoutCard); renderThreads(); if (firstRun) { fit(false); persist(); } });
-setTimeout(() => MDB.cleanup(S.items.map(i => i.id)), 1500);
+setTimeout(() => MDB.cleanup([...S.items.map(i => i.id), ...(typeof brMediaKeys === 'function' ? brMediaKeys() : [])]), 1500);
 window.__gpb = { get state() { return S; }, MDB }; // for testing

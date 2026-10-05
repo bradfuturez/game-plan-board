@@ -1,8 +1,8 @@
 /* Game plan board service worker: works offline after the first visit and picks up new versions promptly. */
-const VERSION = 'gpb-v6.3';
-const SHELL = ['./', './index.html', './styles.css?v=v6.3', './media-db.js?v=v6.3', './board.js?v=v6.3', './gestures.js?v=v6.3',
-  './save-open.js?v=v6.3', './app.js?v=v6.3', './github-sync.js?v=v6.3', './directshare.js?v=v6.3', './botresponse.js?v=v6.3', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
-  './icons/icon-maskable-512.png', './icons/apple-touch-icon.png'];
+const VERSION = 'gpb-v6.4';
+const SHELL = ['./', './index.html', './styles.css?v=v6.4', './media-db.js?v=v6.4', './board.js?v=v6.4', './gestures.js?v=v6.4',
+  './save-open.js?v=v6.4', './app.js?v=v6.4', './github-sync.js?v=v6.4', './directshare.js?v=v6.4', './botresponse.js?v=v6.4', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+  './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './media/botresponse-seed-room.jpg'];
 
 self.addEventListener('install', e => {
   // cache:'reload' skips the HTTP cache so the new version's files really are new.

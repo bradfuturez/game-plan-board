@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.3">
+<link rel="stylesheet" href="styles.css?v=v6.4">
 </head>
 <body>
 <header>
@@ -100,6 +100,11 @@
   </div>
 </div>
 
+<div id="brLight" hidden role="dialog" aria-modal="true" aria-label="Photo, full size">
+  <img id="brLightImg" alt="">
+  <div class="br-light-bar"><span id="brLightName"></span><button id="brLightSave" class="btn">Download</button><button class="btn primary">Close</button></div>
+</div>
+
 <div class="sheet" id="helpSheet" hidden role="dialog" aria-modal="true" aria-labelledby="helpHead">
   <div class="backdrop" data-close></div>
   <div class="panel help">
@@ -116,7 +121,7 @@
     <p><b>Your work saves itself</b> on this phone, photos and videos too. Press <b>SAVE</b> to also put a copy file in your phone's <b>Downloads</b> folder (it includes your photos and videos). Use <b>Open</b> to load one back.</p>
     <p><b>Update to GitHub</b> (in More) sends your whole board, photos and videos included, to your private GitHub so your assistant can read it. The first time, it asks for your passcode.</p>
     <p><b>DirectShare</b> (in More) is your mailbox from your bots: when they send you a note, photo, video or file, the DirectShare box glows red and <b>More</b> gets a red dot. Tap DirectShare and each item lands in its own window in the middle of the screen. Move them like any other window.</p>
-    <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Your answer goes back to the bot.</p>
+    <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Tap a photo to see it full size; videos play right there; tap a file to open it. Your answer goes back to the bot.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
@@ -134,13 +139,13 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.3" defer></script>
-<script src="board.js?v=v6.3" defer></script>
-<script src="gestures.js?v=v6.3" defer></script>
-<script src="save-open.js?v=v6.3" defer></script>
-<script src="app.js?v=v6.3" defer></script>
-<script src="github-sync.js?v=v6.3" defer></script>
-<script src="directshare.js?v=v6.3" defer></script>
-<script src="botresponse.js?v=v6.3" defer></script>
+<script src="media-db.js?v=v6.4" defer></script>
+<script src="board.js?v=v6.4" defer></script>
+<script src="gestures.js?v=v6.4" defer></script>
+<script src="save-open.js?v=v6.4" defer></script>
+<script src="app.js?v=v6.4" defer></script>
+<script src="github-sync.js?v=v6.4" defer></script>
+<script src="directshare.js?v=v6.4" defer></script>
+<script src="botresponse.js?v=v6.4" defer></script>
 </body>
 </html>
