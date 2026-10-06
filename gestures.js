@@ -113,6 +113,7 @@ function openCtx(x, y, items) {
   });
   box.hidden = false; ctxAt = performance.now();
   const dot = box.querySelector('.ctx-dot'); dot.style.left = x + 'px'; dot.style.top = y + 'px';
+  m.style.left = '0px'; m.style.top = '0px'; // measure at full width (not squeezed by where it was last time)
   const r = m.getBoundingClientRect();
   let top = y + 18; if (top + r.height > innerHeight - 8) top = y - r.height - 18;
   m.style.left = clamp(x - 24, 8, innerWidth - r.width - 8) + 'px';
