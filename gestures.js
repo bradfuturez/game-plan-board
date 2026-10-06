@@ -1,6 +1,6 @@
 /* gestures.js: touch / mouse gestures on the board.
    tap window = type in it (after 290ms so a double-tap can win) · double-tap window = orange rope
-   hold (500ms) = menu at your finger · drag = move window / photo / board · pinch = zoom · tap pin = red string */
+   hold (500ms) = menu at your finger (on a window it opens with "Make Main Window?" Yes / No on top) · right-click (mouse) = same menu · drag = move window / photo / board · pinch = zoom · tap pin = red string */
 'use strict';
 const DBL_MS = 300, FOCUS_DELAY = 290, HOLD_MS = 500;
 let linkFrom = null, olinkFrom = null, pendingFocus = 0, lastCardTap = null, suppress = null;
@@ -97,6 +97,14 @@ const ICON = {
 function openCtx(x, y, items) {
   const box = $('#ctx'), m = box.querySelector('.ctx-menu'); m.innerHTML = '';
   items.forEach(it => {
+    if (it.ask) { // a question with Yes / No, at the top of the menu (v6.6: "Make Main Window?")
+      const q = document.createElement('div'); q.className = 'ctx-ask'; q.setAttribute('role', 'group');
+      q.innerHTML = '<span class="ctx-q"></span><div class="ctx-yn"><button class="ctx-yes" role="menuitem">Yes</button><button class="ctx-no" role="menuitem">No</button></div>';
+      q.querySelector('.ctx-q').textContent = it.ask; q.setAttribute('aria-label', it.ask);
+      q.querySelector('.ctx-yes').addEventListener('click', () => { closeCtx(); it.yes(); });
+      q.querySelector('.ctx-no').addEventListener('click', () => { closeCtx(); if (it.no) it.no(); });
+      m.appendChild(q); return;
+    }
     const b = document.createElement('button'); b.setAttribute('role', 'menuitem');
     if (it.danger) b.className = 'danger';
     b.innerHTML = (ICON[it.icon] || '') + '<span></span>'; b.querySelector('span').textContent = it.label;
@@ -118,7 +126,9 @@ function onHold(kind, id, x, y) {
     openCtx(x, y, [{ label: 'New window', icon: 'add', fn: () => addCard(w.x, w.y) },
                    { label: 'Import photos, videos, files', icon: 'img', fn: () => pickMedia(w) }]);
   } else if (kind === 'card') {
-    openCtx(x, y, [{ label: 'Type in this window', icon: 'type', fn: () => focusField(id, 'ct') },
+    const isMain = !!byId(id)?.main;
+    openCtx(x, y, [{ ask: isMain ? 'Remove Main Window?' : 'Make Main Window?', yes: () => setMain(id, !isMain) },
+                   { label: 'Type in this window', icon: 'type', fn: () => focusField(id, 'ct') },
                    { label: 'Tie an orange rope', icon: 'rope', fn: () => startOLink(id) },
                    { label: 'Delete window', icon: 'trash', danger: true, fn: () => { const n = byId(id)?.title || 'Untitled'; const arm = deleteCard(id); toast('Deleted “' + esc(n) + '”', { undo: true }); arm(); } }]);
   } else if (kind === 'item') {
@@ -128,6 +138,15 @@ function onHold(kind, id, x, y) {
     list.push({ label: 'Remove', icon: 'trash', danger: true, fn: () => removeItem(id) });
     openCtx(x, y, list);
   }
+}
+/* ---------- Main Window (v6.6): the hub of a web of windows tied by ropes. More than one is allowed (e.g. one per bot work area). ---------- */
+function setMain(id, on) {
+  const c = byId(id); if (!c) return;
+  const arm = snap();
+  if (on) c.main = true; else delete c.main;
+  layoutCard(c); scheduleThreads(); changed();
+  const n = esc(c.title || 'Untitled');
+  toast(on ? '<span class="ok">✓ “' + n + '” is now a Main Window</span>' : '“' + n + '” is no longer a Main Window', { undo: true }); arm();
 }
 function takeOut(id) {
   const it = itemById(id); if (!it || !it.in) return;
@@ -140,7 +159,9 @@ const ptrs = new Map();
 let g = null, pinch = null, holdT = 0;
 const cardAt = (x, y) => document.elementFromPoint(x, y)?.closest?.('.card')?.dataset.id || null;
 function mark(cls, id) { document.querySelectorAll('.card.' + cls).forEach(el => { if (el.dataset.id !== id) { el.classList.remove(cls); const c = byId(el.dataset.id); c && posCard(c); } }); if (id && cardEls.has(id) && !cardEls.get(id).classList.contains(cls)) { cardEls.get(id).classList.add(cls); posCard(byId(id)); } }
+let lastPtrType = '';
 stage.addEventListener('pointerdown', e => {
+  lastPtrType = e.pointerType;
   if (e.pointerType === 'mouse' && e.button !== 0) return;
   if (e.target.closest('.stage-ui') || e.target.closest('.card.editing textarea')) return; // let the caret work normally
   try { stage.setPointerCapture(e.pointerId); } catch (_) {}
@@ -265,5 +286,16 @@ function updatePinch() {
   S.view = { x: mx - pinch.wx * z, y: my - pinch.wy * z, z }; applyView();
 }
 stage.addEventListener('wheel', e => { e.preventDefault(); zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015))); }, { passive: false });
-stage.addEventListener('contextmenu', e => { if (!e.target.closest('.card.editing textarea')) e.preventDefault(); });
+stage.addEventListener('contextmenu', e => {
+  if (e.target.closest('.card.editing textarea')) return;
+  e.preventDefault();
+  // Mouse right-click opens the same menu as holding. (Touch long-press also fires contextmenu on Android; the hold timer handles that.)
+  if ((e.pointerType || lastPtrType) !== 'mouse' || e.target.closest('.stage-ui') || !$('#ctx').hidden) return;
+  if (g) { g.kind = 'none'; clearTimeout(holdT); }
+  const mi = e.target.closest('.mi'), card = e.target.closest('.card');
+  clearTimeout(pendingFocus); blurEditing();
+  if (mi) onHold('item', mi.dataset.item, e.clientX, e.clientY);
+  else if (card) onHold('card', card.dataset.id, e.clientX, e.clientY);
+  else if (!e.target.closest('.pin') && !e.target.closest('#hits path')) onHold('bg', null, e.clientX, e.clientY);
+});
 stage.addEventListener('dblclick', e => e.preventDefault());

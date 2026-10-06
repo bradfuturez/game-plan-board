@@ -30,7 +30,8 @@ function normalize(d) {
   const cards = (Array.isArray(d.cards) ? d.cards : []).filter(c => c && c.id != null).map(c => ({
     id: String(c.id), x: +c.x || 0, y: +c.y || 0,
     title: String(c.title ?? ''), notes: String(c.notes ?? ''),
-    tilt: Number.isFinite(+c.tilt) ? clamp(+c.tilt, -6, 6) : rndTilt()
+    tilt: Number.isFinite(+c.tilt) ? clamp(+c.tilt, -6, 6) : rndTilt(),
+    ...(c.main === true ? { main: true } : {}) // v6.6 Main Window (hub of a web of windows); older versions just drop it
   }));
   const ids = new Set(cards.map(c => c.id)), seen = new Set();
   const threads = (Array.isArray(d.threads) ? d.threads : []).map(t => t && ({ a: String(t.a), b: String(t.b), kind: t.kind === 'orange' ? 'orange' : 'red' })).filter(t => {
@@ -106,6 +107,7 @@ function cardW(c) {
 function resetSizes() { sizeCache.clear(); }
 function cardCols(c) { const n = itemsIn(c.id).filter(i => i.kind !== 'file').length; return n <= 1 ? 1 : n <= 4 ? 2 : 3; }
 const cardH = c => cardEls.get(c.id)?.offsetHeight || 116;
+const MTAB_H = 52; // room the Main Window tab takes above a window (for fitting the view / the PNG export)
 const pinPos = c => ({ x: c.x + cardW(c) / 2, y: c.y + PIN_Y });
 const centerPos = c => ({ x: c.x + cardW(c) / 2, y: c.y + cardH(c) / 2 });
 function grow(ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; }
@@ -116,7 +118,8 @@ function makeCard(c) {
   const el = document.createElement('div');
   el.className = 'card'; el.dataset.id = c.id;
   el.innerHTML = '<textarea class="ct" rows="1" maxlength="120" placeholder="Title" enterkeyhint="next" aria-label="Window title"></textarea>' +
-    '<textarea class="cn" rows="1" placeholder="Type notes…" aria-label="Window notes"></textarea><div class="cv"></div><div class="mbox"></div>';
+    '<textarea class="cn" rows="1" placeholder="Type notes…" aria-label="Window notes"></textarea><div class="cv"></div><div class="mbox"></div>' +
+    '<div class="mtab">Main window of the web</div>'; // v6.6: shown only while the window is a Main Window (.card.main)
   el.querySelector('.ct').value = c.title; el.querySelector('.cn').value = c.notes;
   cardsL.appendChild(el); cardEls.set(c.id, el);
   const pin = document.createElement('button');
@@ -127,6 +130,7 @@ function makeCard(c) {
 function layoutCard(c) {
   const el = cardEls.get(c?.id); if (!el) return;
   el.style.width = cardW(c) + 'px';
+  el.classList.toggle('main', !!c.main);
   el.querySelector('.mbox').style.gridTemplateColumns = `repeat(${cardCols(c)},1fr)`;
   const cn = el.querySelector('.cn');
   cn.classList.toggle('empty', !c.notes);
@@ -217,7 +221,7 @@ function applyView() {
 function screenToWorld(cx, cy) { const r = stage.getBoundingClientRect(), v = S.view; return { x: (cx - r.left - v.x) / v.z, y: (cy - r.top - v.y) / v.z }; }
 function viewCenter() { const r = stage.getBoundingClientRect(); return screenToWorld(r.left + r.width / 2, r.top + r.height / 2); }
 function bounds() {
-  const boxes = S.cards.map(c => [c.x, c.y, cardW(c), cardH(c)]);
+  const boxes = S.cards.map(c => c.main ? [c.x - 4, c.y - MTAB_H, cardW(c) + 8, cardH(c) + MTAB_H + 4] : [c.x, c.y, cardW(c), cardH(c)]);
   S.items.forEach(i => { if (!i.in) { const el = itemEls.get(i.id); boxes.push([i.x, i.y, el?.offsetWidth || 150, el?.offsetHeight || 110]); } });
   if (!boxes.length) return null;
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;

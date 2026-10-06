@@ -300,3 +300,21 @@ svg.layer{pointer-events:none}
 .bb-show{display:flex;width:fit-content;color:#8E1C14;background:#FFE7E4}
 .bb-st{display:block;width:fit-content}
 .bb-st.bb-yes,:root[data-theme=light] .bb-st.bb-yes{background:#DFF3E5;color:#1C7A3A}.bb-st.bb-no,:root[data-theme=light] .bb-st.bb-no{background:#FDE3E0;color:#B3261E}.bb-st.bb-miss,:root[data-theme=light] .bb-st.bb-miss{background:#FFF0D6;color:#8A4B00}
+
+/* ---------- v6.6 Main Window: hold a window → "Make Main Window?" → purple glow + a purple tab above it ("Main window of the web") ---------- */
+.card .mtab{display:none}
+.card.main{--mw:calc(4px * var(--bz));filter:drop-shadow(0 0 calc(9px * var(--bz)) rgba(168,85,247,.8)) drop-shadow(0 0 calc(26px * var(--bz)) rgba(168,85,247,.45))} /* one glow around window + tab together */
+.card.main:not(.olink):not(.target):not(.drop):not(.linking):not(.editing):not(.dragging){box-shadow:0 0 0 var(--mw) #A855F7,0 10px 22px -8px var(--shadow)}
+.card.main.editing{box-shadow:0 0 0 var(--mw) #A855F7,0 0 0 calc(var(--mw) + 3px) var(--focus)}
+.card.main.dragging{box-shadow:0 0 0 var(--mw) #A855F7,0 24px 40px -10px var(--shadow)}
+.card.main .mtab{display:block;position:absolute;left:calc(-1 * var(--mw));right:calc(-1 * var(--mw));bottom:calc(100% + var(--mw));padding:9px 10px 8px;border:var(--mw) solid #A855F7;border-bottom:0;border-radius:14px 14px 0 0;background:#241233;color:#C084FC;font:800 16px/1.2 var(--display);text-align:center;letter-spacing:.01em;overflow-wrap:anywhere;text-shadow:0 0 10px rgba(168,85,247,.55)}
+:root[data-theme=light] .card.main .mtab{background:#F3E8FF;color:#7E22CE;text-shadow:none}
+/* the question on top of the hold menu */
+.ctx-ask{padding:10px 8px 8px;margin:0 0 4px;border-radius:12px;background:rgba(168,85,247,.14);border:2px solid #A855F7}
+.ctx-q{display:block;margin:0 6px 9px;font:800 18px/1.25 var(--display);color:#C084FC}
+:root[data-theme=light] .ctx-q{color:#7E22CE}
+.ctx-yn{display:flex;gap:8px}
+.ctx-menu .ctx-yn button{flex:1;justify-content:center;min-height:48px;padding:0 10px;border-radius:10px;font-size:17px;font-weight:800;text-align:center}
+.ctx-menu .ctx-yes{background:#A855F7;color:#fff}
+.ctx-menu .ctx-yes:active{background:#9333EA}
+.ctx-menu .ctx-no{background:rgba(127,127,127,.2);color:var(--chrome-ink)}

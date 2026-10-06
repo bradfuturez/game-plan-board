@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.5">
+<link rel="stylesheet" href="styles.css?v=v6.6">
 </head>
 <body>
 <header>
@@ -118,6 +118,7 @@
     <p><b>Orange rope:</b> double-tap a window (it glows orange), then double-tap another window. Tap the empty board to cancel.</p>
     <p><b>Red string:</b> tap a window's gold pin, then tap another window. <b>Cut a string or rope:</b> tap it and choose Cut (you can Undo).</p>
     <p><b>Remove things:</b> hold a window, photo or file for a menu.</p>
+    <p><b>Main Window:</b> hold your finger on a window and answer <b>Yes</b> to <b>Make Main Window?</b>. It glows purple and gets a purple tab on top that says <b>Main window of the web</b>, so you can see the hub of a group of windows tied together. You can have more than one. Hold it again and choose <b>Remove Main Window?</b> to undo it. With a mouse, right-click a window.</p>
     <p><b>Move around:</b> drag the empty board. <b>Zoom:</b> pinch with two fingers, or use the + and − buttons.</p>
     <p><b>Your work saves itself</b> on this phone, photos and videos too. Press <b>SAVE</b> to also put a copy file in your phone's <b>Downloads</b> folder (it includes your photos and videos). Use <b>Open</b> to load one back.</p>
     <p><b>Update to GitHub</b> (in More) sends your whole board, photos and videos included, to your private GitHub so your assistant can read it. The first time, it asks for your passcode.</p>
@@ -140,14 +141,14 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.5" defer></script>
-<script src="board.js?v=v6.5" defer></script>
-<script src="gestures.js?v=v6.5" defer></script>
-<script src="save-open.js?v=v6.5" defer></script>
-<script src="app.js?v=v6.5" defer></script>
-<script src="github-sync.js?v=v6.5" defer></script>
-<script src="directshare.js?v=v6.5" defer></script>
-<script src="botresponse.js?v=v6.5" defer></script>
-<script src="botboard.js?v=v6.5" defer></script>
+<script src="media-db.js?v=v6.6" defer></script>
+<script src="board.js?v=v6.6" defer></script>
+<script src="gestures.js?v=v6.6" defer></script>
+<script src="save-open.js?v=v6.6" defer></script>
+<script src="app.js?v=v6.6" defer></script>
+<script src="github-sync.js?v=v6.6" defer></script>
+<script src="directshare.js?v=v6.6" defer></script>
+<script src="botresponse.js?v=v6.6" defer></script>
+<script src="botboard.js?v=v6.6" defer></script>
 </body>
 </html>

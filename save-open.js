@@ -115,6 +115,14 @@ async function exportImage() {
   S.cards.forEach(c => {
     const el = cardEls.get(c.id), w = cardW(c), h = cardH(c);
     ctx.save(); ctx.translate(c.x, c.y);
+    if (c.main) { // v6.6 Main Window: purple glow frame + the tab above it
+      const dark = document.documentElement.dataset.theme !== 'light';
+      ctx.font = '800 16px "Bricolage Grotesque", system-ui, sans-serif'; const th = 18 + wrapLines(ctx, 'Main window of the web', w - 20).length * 19;
+      ctx.shadowColor = 'rgba(168,85,247,.8)'; ctx.shadowBlur = 24; ctx.fillStyle = '#A855F7'; ctx.fillRect(-4, -4 - th, w + 8, h + 8 + th); ctx.shadowColor = 'transparent';
+      ctx.fillStyle = dark ? '#241233' : '#F3E8FF'; ctx.fillRect(0, -th, w, th);
+      ctx.fillStyle = dark ? '#C084FC' : '#7E22CE'; ctx.font = '800 16px "Bricolage Grotesque", system-ui, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'center';
+      const ls = wrapLines(ctx, 'Main window of the web', w - 20); ls.forEach((l, k) => ctx.fillText(l, w / 2, -th + (th - ls.length * 19) / 2 + k * 19)); ctx.textAlign = 'left';
+    }
     ctx.shadowColor = V('--shadow'); ctx.shadowBlur = 18; ctx.shadowOffsetY = 8;
     ctx.fillStyle = V('--card'); ctx.fillRect(0, 0, w, h); ctx.shadowColor = 'transparent';
     const inner = w - 28; let y = 24; ctx.textBaseline = 'top';
