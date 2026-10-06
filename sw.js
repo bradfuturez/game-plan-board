@@ -1,7 +1,7 @@
 /* Game plan board service worker: works offline after the first visit and picks up new versions promptly. */
-const VERSION = 'gpb-v6.4';
-const SHELL = ['./', './index.html', './styles.css?v=v6.4', './media-db.js?v=v6.4', './board.js?v=v6.4', './gestures.js?v=v6.4',
-  './save-open.js?v=v6.4', './app.js?v=v6.4', './github-sync.js?v=v6.4', './directshare.js?v=v6.4', './botresponse.js?v=v6.4', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+const VERSION = 'gpb-v6.5';
+const SHELL = ['./', './index.html', './styles.css?v=v6.5', './media-db.js?v=v6.5', './board.js?v=v6.5', './gestures.js?v=v6.5',
+  './save-open.js?v=v6.5', './app.js?v=v6.5', './github-sync.js?v=v6.5', './directshare.js?v=v6.5', './botresponse.js?v=v6.5', './botboard.js?v=v6.5', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './media/botresponse-seed-room.jpg'];
 
 self.addEventListener('install', e => {

@@ -9,7 +9,7 @@ const BR_KEY = 'gpb.botresponse.v1', BR_POLL_MS = 60000;
 const BR_LABEL = { yes: 'Yes, it matches me', no: 'No' };
 // The first response ships with the app (it describes this feature, nothing private), so the tab glows right after the
 // update even before the relay has BotResponse. The same id sits in the private inbox, so it is never shown twice.
-const BR_BUILTIN = {"id":"20261005-181500-gdev63","rev":2,"bot":"CreateAWar Game Developer","createdAt":"2026-10-05T18:15:00-04:00","title":"BotResponse tab added to your board app (now with photos & files)","summary":"I built the BotResponse feature you asked for. This is the first real response: it lists what I changed in your Game plan board app, so you can check it matches what you wanted. Responses can now carry photos, videos and files too: the room picture below is one.\n\nTap \"Yes, it matches me\" if it does, or \"No\" if something is off and I'll fix it.","changes":[{"type":"add","windowTitle":"BotResponse tab","after":"New tab in the bottom bar, next to More. It glows yellow with a count while a bot response waits for your answer, and stops glowing when everything is answered."},{"type":"add","windowTitle":"Mini windows","after":"Each response shows the bot's name, the time, its title and summary, and a list of what it added, changed, removed or tied on its board. Full text, no scrolling inside."},{"type":"add","windowTitle":"Yes / No answers","after":"Two buttons on every mini window: green \"Yes, it matches me\" and red \"No\". Your answer is saved on this phone and sent back so the bot can read it. Answered ones move to Answered."},{"type":"add","windowTitle":"Photos & files","after":"A response can include pictures (tap one to see it full size), videos that play right in the mini window, and files you tap to open or download."},{"type":"edit","windowTitle":"Bottom bar","before":"Add window · SAVE · Open · More","after":"Add window · SAVE · Open · BotResponse · More"},{"type":"link","windowTitle":"BotResponse tab","to":"DirectShare","rope":"orange","note":"Uses the same private connection and passcode as DirectShare."}],"attachments":[{"name":"procgen-room-t1.jpg","type":"image","url":"media/botresponse-seed-room.jpg","mime":"image/jpeg","size":25283},{"name":"BOTRESPONSE.md","type":"file","url":"docs/BOTRESPONSE.md","mime":"text/markdown","size":2760}]};
+const BR_BUILTIN = {"id":"20261005-181500-gdev63","rev":3,"bot":"CreateAWar Game Developer","createdAt":"2026-10-05T18:15:00-04:00","apply":false,"title":"BotResponse tab added to your board app (now with photos & files)","summary":"I built the BotResponse feature you asked for. This is the first real response: it lists what I changed in your Game plan board app, so you can check it matches what you wanted. Responses can now carry photos, videos and files too: the room picture below is one.\n\nTap \"Yes, it matches me\" if it does, or \"No\" if something is off and I'll fix it.","changes":[{"type":"add","windowTitle":"BotResponse tab","after":"New tab in the bottom bar, next to More. It glows yellow with a count while a bot response waits for your answer, and stops glowing when everything is answered."},{"type":"add","windowTitle":"Mini windows","after":"Each response shows the bot's name, the time, its title and summary, and a list of what it added, changed, removed or tied on its board. Full text, no scrolling inside."},{"type":"add","windowTitle":"Yes / No answers","after":"Two buttons on every mini window: green \"Yes, it matches me\" and red \"No\". Your answer is saved on this phone and sent back so the bot can read it. Answered ones move to Answered."},{"type":"add","windowTitle":"Photos & files","after":"A response can include pictures (tap one to see it full size), videos that play right in the mini window, and files you tap to open or download."},{"type":"edit","windowTitle":"Bottom bar","before":"Add window · SAVE · Open · More","after":"Add window · SAVE · Open · BotResponse · More"},{"type":"link","windowTitle":"BotResponse tab","to":"DirectShare","rope":"orange","note":"Uses the same private connection and passcode as DirectShare."}],"attachments":[{"name":"procgen-room-t1.jpg","type":"image","url":"media/botresponse-seed-room.jpg","mime":"image/jpeg","size":25283},{"name":"BOTRESPONSE.md","type":"file","url":"docs/BOTRESPONSE.md","mime":"text/markdown","size":5746}]};
 let BR = brLoad(), brPolling = false, brNeedPass = false;
 if (!BR.seeded) BR.seeded = {};
 if (!BR.seeded[BR_BUILTIN.id]) { BR.seeded[BR_BUILTIN.id] = 1; if (!BR.items[BR_BUILTIN.id]) BR.items[BR_BUILTIN.id] = BR_BUILTIN; brSave(); }
@@ -19,6 +19,7 @@ function brLoad() {
   try { const d = JSON.parse(localStorage.getItem(BR_KEY) || 'null'); if (d && typeof d.items === 'object' && typeof d.answers === 'object') return d; } catch (_) {}
   return { items: {}, answers: {} };
 }
+if (!BR.decisions) BR.decisions = {}; // per change, "<responseId>:<index>" -> {answer, at, applied, old}  (on-board Yes / No)
 function brSave() { try { localStorage.setItem(BR_KEY, JSON.stringify(BR)); } catch (_) {} }
 const brTime = r => +new Date(r.createdAt) || 0;
 const brPending = () => Object.values(BR.items).filter(r => !BR.answers[r.id]).sort((a, b) => brTime(b) - brTime(a));
@@ -26,7 +27,14 @@ const brAnswered = () => Object.values(BR.items).filter(r => BR.answers[r.id]).s
 // what goes into SAVE files and Update to GitHub (board.json → botResponses)
 function brExport() {
   return Object.values(BR.items).map(r => ({ id: r.id, bot: r.bot, title: r.title, createdAt: r.createdAt,
-    ...(BR.answers[r.id] ? { answer: BR.answers[r.id].answer, label: BR_LABEL[BR.answers[r.id].answer], answeredAt: BR.answers[r.id].answeredAt } : { answer: null }) }));
+    ...(BR.answers[r.id] ? { answer: BR.answers[r.id].answer, label: BR_LABEL[BR.answers[r.id].answer], answeredAt: BR.answers[r.id].answeredAt } : { answer: null }),
+    ...(brDecisionsOf(r.id).length ? { changes: brDecisionsOf(r.id) } : {}) }));
+}
+// on-board decisions for one response, in the shape bots get back: [{index, type, windowTitle, windowId, answer, applied, before}]
+function brDecisionsOf(rid) {
+  const r = BR.items[rid]; if (!r) return [];
+  return (r.changes || []).map((c, i) => [c, i, BR.decisions[rid + ':' + i]]).filter(x => x[2]).map(([c, i, d]) => ({ index: i, type: c.type, windowTitle: c.windowTitle,
+    ...(c.windowId ? { windowId: c.windowId } : {}), answer: d.answer, applied: !!d.applied, answeredAt: d.at, ...(d.old ? { before: d.old } : {}), ...(d.windowId ? { windowId: d.windowId } : {}) }));
 }
 
 /* ---------- the glow on the tab ---------- */
@@ -36,13 +44,14 @@ function brRender() {
   badge.hidden = !n; badge.textContent = n > 9 ? '9+' : String(n);
   btn.setAttribute('aria-label', n ? `BotResponse, ${n} bot response${n > 1 ? 's' : ''} waiting for your answer` : 'BotResponse');
   if (openSheet && openSheet.id === 'brSheet' && brSig() !== brShown) brRenderSheet();
+  if (typeof bbRefresh === 'function') bbRefresh();
 }
 let brShown = '';
-const brSig = () => JSON.stringify([Object.keys(BR.items).sort(), BR.answers, brNeedPass]);
+const brSig = () => JSON.stringify([Object.keys(BR.items).sort(), BR.answers, BR.decisions, brNeedPass, typeof bbSig === 'function' ? bbSig() : '']);
 
 /* ---------- mini windows ---------- */
 const BR_KIND = { add: ['Added', 'add'], edit: ['Changed', 'edit'], remove: ['Removed', 'remove'], link: ['Linked', 'link'], unlink: ['Unlinked', 'remove'], move: ['Moved', 'edit'] };
-function brChange(c) {
+function brChange(c, i, r) {
   const [word, cls] = BR_KIND[c.type] || BR_KIND.edit, t = c.windowTitle ? `“${esc(c.windowTitle)}”` : 'a window';
   let head = `<span class="br-tag br-${cls}">${word}</span> <b>${t}</b>`, body = '';
   if (c.type === 'link' || c.type === 'unlink') {
@@ -52,7 +61,9 @@ function brChange(c) {
   if (c.type === 'add') body = line('Says', c.after, 'now');
   else if (c.type === 'remove') body = line('It said', c.before, 'was');
   else body = line('Was', c.before, 'was') + line('Now', c.after, 'now');
+  if (c.titleAfter) body = `<div class="br-was"><i>Title was</i>${esc(c.titleBefore || c.windowTitle || '')}</div><div class="br-now"><i>New title</i>${esc(c.titleAfter)}</div>` + body;
   if (c.note) body += `<div class="br-note">${esc(c.note)}</div>`;
+  if (r && typeof bbTabStatus === 'function') body += bbTabStatus(r, c, i);
   return `<li>${head}${body}</li>`;
 }
 function brCard(r) {
@@ -72,7 +83,7 @@ function brCard(r) {
     <h3>${esc(r.title || 'Changes to the board')}</h3>
     ${r.summary ? `<p class="br-sum">${esc(r.summary)}</p>` : ''}
     ${brAtts(r)}
-    ${n ? `<div class="br-ch-head">${n} change${n > 1 ? 's' : ''} to its board</div><ul class="br-changes">${r.changes.map(brChange).join('')}</ul>` : ''}
+    ${n ? `<div class="br-ch-head">${n} change${n > 1 ? 's' : ''} to its board</div><ul class="br-changes">${r.changes.map((c, i) => brChange(c, i, r)).join('')}</ul>` : ''}
     ${a ? '' : foot}
   </article>`;
 }
@@ -145,8 +156,9 @@ async function brEnsure(rid, i) {
     if (u) { brUrls.set(k, u); brFailed.delete(k); }
   } catch (e) { brFailed.add(k); }
   finally { brBusy.delete(k); }
-  const el = document.querySelector(`#brList [data-k="${k}"]`), r = BR.items[rid];
-  if (el && r) { const t = document.createElement('div'); t.innerHTML = brAtt(r, r.attachments[i], i); (el.closest('figure') || el).replaceWith(t.firstElementChild); }
+  const r = BR.items[rid];
+  if (r) document.querySelectorAll(`[data-k="${k}"]`).forEach(el => { const t = document.createElement('div'); t.innerHTML = brAtt(r, r.attachments[i], i); (el.closest('figure') || el).replaceWith(t.firstElementChild); });
+  if (typeof bbPlaceSoon === 'function') bbPlaceSoon();
 }
 let brLightSrc = null;
 function brLight(src, name, rid, i) {
@@ -174,7 +186,7 @@ async function brOpenFile(rid, i) {
 /* ---------- talking to the relay ---------- */
 async function brSync() {
   const todo = Object.entries(BR.answers).filter(([, a]) => !a.synced).map(([id, a]) => ({ id, answer: a.answer, answeredAt: a.answeredAt, localTime: a.localTime,
-    bot: (BR.items[id] || {}).bot || '', title: (BR.items[id] || {}).title || '' }));
+    bot: (BR.items[id] || {}).bot || '', title: (BR.items[id] || {}).title || '', ...(brDecisionsOf(id).length ? { changes: brDecisionsOf(id) } : {}) }));
   if (!todo.length) return 0;
   const d = await dsCall('botresponse/answer', { answers: todo });
   for (const id of d.saved || []) if (BR.answers[id]) BR.answers[id].synced = true;
@@ -229,11 +241,16 @@ async function brAnswer(id, answer, btn) {
   brRender();
 }
 
+function brAttClick(e) { // photo / file / retry taps, in the tab or in an on-board callout
+  const im = e.target.closest('.br-img'); if (im) { const img = im.querySelector('img'); brLight(img.src, img.alt, im.dataset.r, +im.dataset.i); return true; }
+  const ch = e.target.closest('button.br-chip'); if (ch) { brOpenFile(ch.dataset.r, +ch.dataset.i); return true; }
+  const ph = e.target.closest('.br-ph'); if (ph) { brFailed.delete(ph.dataset.k); brEnsure(ph.dataset.r, +ph.dataset.i); return true; }
+  return false;
+}
 $('#brList').addEventListener('click', e => {
   const b = e.target.closest('button[data-br]'); if (b) { brAnswer(b.dataset.br, b.dataset.a, b); return; }
-  const im = e.target.closest('.br-img'); if (im) { const img = im.querySelector('img'); brLight(img.src, img.alt, im.dataset.r, +im.dataset.i); return; }
-  const ch = e.target.closest('button.br-chip'); if (ch) { brOpenFile(ch.dataset.r, +ch.dataset.i); return; }
-  const ph = e.target.closest('.br-ph'); if (ph) { brFailed.delete(ph.dataset.k); brEnsure(ph.dataset.r, +ph.dataset.i); }
+  const sb = e.target.closest('button[data-show]'); if (sb) { bbShow(sb.dataset.show); return; }
+  brAttClick(e);
 });
 $('#brLight').addEventListener('click', e => { if (e.target.id === 'brLightSave') return; brLightClose(); });
 $('#brLightSave').addEventListener('click', async () => {

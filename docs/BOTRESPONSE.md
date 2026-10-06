@@ -1,4 +1,4 @@
-# BotResponse (Game plan board v6.3+, attachments v6.4+)
+# BotResponse (Game plan board v6.3+, attachments v6.4+, on the board v6.5+)
 
 The **BotResponse** tab glows yellow when one of Brad's bots has changed its copy of his game board. Each response
 shows as a mini window (bot, time, title, summary, a list of the changes) with two answers: **Yes, it matches me** or
@@ -18,9 +18,10 @@ with `/workspace/tools/botresponse/send.sh` (full guide: `/workspace/tools/botre
  "summary": "What changed and why.",
  "changes": [
   {"type": "add",    "windowTitle": "New window", "after": "its text"},
-  {"type": "edit",   "windowTitle": "A window", "before": "old text", "after": "new text"},
+  {"type": "edit",   "windowId": "y8edpc09", "windowTitle": "A window", "before": "old text", "after": "new text",
+   "titleAfter": "New title (optional)", "note": "why (shown in the callout)"},
   {"type": "remove", "windowTitle": "Gone window", "before": "what it said"},
-  {"type": "link",   "windowTitle": "One window", "to": "Other window", "rope": "orange"}
+  {"type": "link",   "windowTitle": "One window", "to": "Other window", "toId": "ab12cd34", "rope": "orange"}
  ],
  "attachments": [
   {"name": "room.jpg",   "type": "image", "path": "botresponse/media/YYYYMMDD-HHMMSS-xxxxxxa1.jpg", "mime": "image/jpeg", "size": 25283},
@@ -31,6 +32,31 @@ with `/workspace/tools/botresponse/send.sh` (full guide: `/workspace/tools/botre
 ```
 
 `type` is `add | edit | remove | link` (also `unlink`, `move`); optional `note`.
+
+Optional (v6.5): `windowId` / `toId` = the window's `id` in Brad's `board.json` (stable even if he renames it),
+`titleAfter` (edit: new title; `titleBefore` = old one), `near` / `nearId` (add: put the new window next to this one),
+and response-level `"apply": false` for a response that only describes your own work (shown in the tab, never on the board).
+
+## On the board (v6.5)
+
+A waiting response whose change targets one of Brad's windows (`edit`, `remove`, `link`, `unlink`) is shown **on the board**:
+
+- The window is found by `windowId` first, then the exact `windowTitle`, then the title trimmed / case-insensitive.
+- It gets a pulsing **red glow**, and a white **bot input** callout hangs next to it on a red line (never covering it):
+  bot name, the note (or summary), the window's **current** text → your version (title and/or text), attachments as
+  thumbnails, and **Yes** (green) / **No** (red). The callout is drawn at screen size, so it stays readable at any zoom,
+  and shows all its text (no inner scrolling). Only one callout is open at a time; the others are small "bot input" tags
+  (tap to open).
+- **Yes** applies it to his real window: edit = new text / title; remove = asks again, then removes; link = ties the
+  rope (`rope: red` = red string); unlink = cuts it. The board saves as usual and the toast has **Undo**. The old text is
+  also kept in the decision record (`before`), so it can always be restored. **No** leaves the window as it was.
+- `add` shows a dashed **ghost window** (next to `near`, or right of the board) with the same Yes / No; Yes makes it real.
+- If the window can't be found, the change shows only in the tab, marked **Window not found on your board**.
+- Each targeted change in the tab has **Show on board** (pans / zooms to the glowing window). When the app opens with
+  a new targeted response it shows it on the board by itself, once.
+- When every board change of a response has a Yes / No, the response is answered (`yes` only if every change was yes) and
+  sent back like a tab answer, with the per-change decisions in `changes`. The tab's own **Yes, it matches me / No**
+  buttons still work as before (they answer the whole response without touching the board).
 
 ### Attachments (optional, up to 20)
 
@@ -46,5 +72,12 @@ with `/workspace/tools/botresponse/send.sh` (full guide: `/workspace/tools/botre
 
 ## Answers: `botresponse/answers.json` (private data repo)
 
-`{"<id>": {"id", "bot", "title", "answer": "yes" | "no", "label", "answeredAt", "localTime"}}`. The answered response
-is moved to `botresponse/answered/<id>.json` with its `answer` inside.
+`{"<id>": {"id", "bot", "title", "answer": "yes" | "no", "label", "answeredAt", "localTime", "changes"?}}`. The answered response
+is moved to `botresponse/answered/<id>.json` with its `answer` inside. `changes` (v6.5, answers made on the board) =
+`[{index, type, windowTitle, windowId, answer, applied, answeredAt, before: {title, notes}}]`: Brad's Yes / No per change,
+whether it was applied to his window, and the text the window had before. The same data is also in the board file
+(`botResponses[].changes`) that SAVE / Update to GitHub writes.
+
+Note: the relay keeps `windowId`, `toId`, `titleAfter`, `apply` and the per-change `changes` from relay commit 02d6575 on.
+A relay deployed before that strips them (title matching still works; per-change decisions then reach bots only through
+the board file).

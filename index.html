@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.4">
+<link rel="stylesheet" href="styles.css?v=v6.5">
 </head>
 <body>
 <header>
@@ -36,6 +36,7 @@
     <div id="pins" class="layer"></div>
     <div id="media" class="layer"></div>
   </div>
+  <div id="bbBoard" aria-live="polite"><svg id="bbLines" aria-hidden="true"></svg><div id="bbCallouts"></div></div>
   <div id="empty" hidden><div><b>Your board is empty</b>Hold your finger on the board for a menu, or press <strong>Add window</strong>.</div></div>
   <div id="linkBar" class="stage-ui" hidden role="status"><span></span><button id="linkCancel">Cancel</button></div>
   <div id="zoom" class="stage-ui">
@@ -139,13 +140,14 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.4" defer></script>
-<script src="board.js?v=v6.4" defer></script>
-<script src="gestures.js?v=v6.4" defer></script>
-<script src="save-open.js?v=v6.4" defer></script>
-<script src="app.js?v=v6.4" defer></script>
-<script src="github-sync.js?v=v6.4" defer></script>
-<script src="directshare.js?v=v6.4" defer></script>
-<script src="botresponse.js?v=v6.4" defer></script>
+<script src="media-db.js?v=v6.5" defer></script>
+<script src="board.js?v=v6.5" defer></script>
+<script src="gestures.js?v=v6.5" defer></script>
+<script src="save-open.js?v=v6.5" defer></script>
+<script src="app.js?v=v6.5" defer></script>
+<script src="github-sync.js?v=v6.5" defer></script>
+<script src="directshare.js?v=v6.5" defer></script>
+<script src="botresponse.js?v=v6.5" defer></script>
+<script src="botboard.js?v=v6.5" defer></script>
 </body>
 </html>
