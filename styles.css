@@ -318,3 +318,40 @@ svg.layer{pointer-events:none}
 .ctx-menu .ctx-yes{background:#A855F7;color:#fff}
 .ctx-menu .ctx-yes:active{background:#9333EA}
 .ctx-menu .ctx-no{background:rgba(127,127,127,.2);color:var(--chrome-ink)}
+
+/* ---------- v6.7: bot tabs at the top (one per bot with something waiting, red count) + the sheet to answer them ---------- */
+#botTabs{flex:none;display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:7px 10px 8px;background:var(--chrome);border-bottom:1px solid var(--chrome-line);scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x}
+#botTabs[hidden]{display:none}
+#botTabs::-webkit-scrollbar{display:none}
+.bt-tab{flex:none;position:relative;display:flex;align-items:center;gap:8px;min-height:40px;max-width:210px;padding:0 7px 0 14px;border-radius:999px;border:1.5px solid rgba(229,50,43,.6);background:rgba(229,50,43,.12);color:var(--chrome-ink);font:700 14px/1.1 var(--body);white-space:nowrap}
+:root[data-theme=light] .bt-tab{background:rgba(217,45,32,.08);border-color:rgba(217,45,32,.5)}
+.bt-name{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.bt-badge{flex:none;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#D92D20;color:#fff;font-size:13px;font-weight:800;line-height:1;display:grid;place-items:center;box-shadow:0 0 0 2px var(--chrome),0 0 8px rgba(229,50,43,.55)}
+.bt-tab:active{transform:translateY(1px);filter:brightness(.95)}
+.bt-panel{max-height:86%}
+.bt-headrow{display:flex;align-items:center;gap:8px}
+.bt-headrow h2{flex:1;min-width:0;margin:4px 0 2px;overflow-wrap:anywhere}
+.bt-x{margin-right:-8px}
+.bt-sub{margin:0 0 12px;font-size:14px;line-height:1.4;color:var(--chrome-muted)}
+.bt-card{background:#fff;color:#1E2126;border:2px solid #FF2D20;border-radius:14px;padding:10px 12px 12px;margin:0 0 12px;font-size:15px;line-height:1.35;box-shadow:0 4px 14px var(--shadow);overflow-wrap:anywhere}
+.bt-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px;color:#6A6D73}
+.bt-who{font-family:var(--display);font-weight:700;font-size:16px;color:#1E2126}
+.bt-verb{display:inline-block;margin:6px 0 2px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#B3261E;background:#FFE7E4;border-radius:999px;padding:2px 8px}
+.bt-v-add{color:#1C7A3A;background:#DFF3E5}.bt-v-resp{color:#7A5A00;background:#FFF0C2}
+.bt-card h3{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.25;margin:6px 0 4px}
+.bt-card .bb-note{color:#454850}
+.bt-sum{white-space:pre-wrap}
+.bt-ask{font-weight:800;font-size:15px;margin:10px 0 0}
+.bt-card .br-atts{margin:10px 0 0}
+.bt-card .br-chip{color:#1E2126;background:#F3F1EC;border-color:#DDD8CC}
+.bt-card figcaption,.bt-card .br-ch-head,.bt-card .br-was,.bt-card .br-note{color:#6A6D73}
+.bt-card .br-ch-head{margin-top:10px}
+.bt-card .br-changes{margin-bottom:0}
+.bt-card .br-changes li{border-left-color:#DDD8CC}
+.bt-card .bb-btns button{min-height:52px;font-size:18px}
+.bt-card.chose-yes{box-shadow:0 0 0 3px #1F9D46}.bt-card.chose-no{box-shadow:0 0 0 3px #D93025}
+.bb-inline{margin-top:8px}.bb-inline button{min-height:46px;font-size:16px}
+.app-ver{font-size:13px;color:var(--chrome-muted);text-align:center;margin:10px 0 6px}
+.bt-win{margin:4px 0 2px;font-size:14px;color:#454850}.bt-win b{color:#1E2126}
+/* while a bot sheet is open the toast (with Undo) goes to the top, over the dimmed board, so it never covers Yes / No */
+body:has(#btSheet.open) #toast,body:has(#brSheet.open) #toast{bottom:auto;top:calc(10px + var(--sat))}

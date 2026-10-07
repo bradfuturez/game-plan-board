@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.6">
+<link rel="stylesheet" href="styles.css?v=v6.7">
 </head>
 <body>
 <header>
@@ -27,6 +27,8 @@
   <span class="count" id="count">0 windows</span>
   <button class="icon-btn" id="themeBtn" aria-label="Switch to light theme" title="Light / dark"></button>
 </header>
+<!-- v6.7: one tab per bot with something waiting (red count). Tap one to answer its changes Yes / No. Hidden when nothing waits. -->
+<div id="botTabs" role="tablist" aria-label="Bots waiting for your answer" hidden></div>
 
 <main id="stage" aria-label="Board. Drag to move around, pinch to zoom, hold for a menu.">
   <div id="world">
@@ -36,7 +38,6 @@
     <div id="pins" class="layer"></div>
     <div id="media" class="layer"></div>
   </div>
-  <div id="bbBoard" aria-live="polite"><svg id="bbLines" aria-hidden="true"></svg><div id="bbCallouts"></div></div>
   <div id="empty" hidden><div><b>Your board is empty</b>Hold your finger on the board for a menu, or press <strong>Add window</strong>.</div></div>
   <div id="linkBar" class="stage-ui" hidden role="status"><span></span><button id="linkCancel">Cancel</button></div>
   <div id="zoom" class="stage-ui">
@@ -101,6 +102,17 @@
   </div>
 </div>
 
+<div class="sheet" id="btSheet" hidden role="dialog" aria-modal="true" aria-labelledby="btHead">
+  <div class="backdrop" data-close></div>
+  <div class="panel bt-panel">
+    <div class="grab"></div>
+    <div class="bt-headrow"><h2 id="btHead">Bot</h2><button class="icon-btn bt-x" data-close aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <p class="bt-sub" id="btSub"></p>
+    <div id="btList"></div>
+    <div class="row"><button class="btn" data-close>Close</button></div>
+  </div>
+</div>
+
 <div id="brLight" hidden role="dialog" aria-modal="true" aria-label="Photo, full size">
   <img id="brLightImg" alt="">
   <div class="br-light-bar"><span id="brLightName"></span><button id="brLightSave" class="btn">Download</button><button class="btn primary">Close</button></div>
@@ -124,7 +136,9 @@
     <p><b>Update to GitHub</b> (in More) sends your whole board, photos and videos included, to your private GitHub so your assistant can read it. The first time, it asks for your passcode.</p>
     <p><b>DirectShare</b> (in More) is your mailbox from your bots: when they send you a note, photo, video or file, the DirectShare box glows red and <b>More</b> gets a red dot. Tap DirectShare and each item lands in its own window in the middle of the screen. Move them like any other window.</p>
     <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Tap a photo to see it full size; videos play right there; tap a file to open it. Your answer goes back to the bot.</p>
+    <p><b>Bot tabs</b> (top of the screen, under the title): when a bot has changes waiting, it gets its own tab with a red number. Tap the tab to see that bot's new windows and changes, then tap <b>Yes</b> to put each one on your board or <b>No</b> to throw it away. The number goes down as you answer; the tab goes away when that bot has nothing left. Nothing pops up on the board by itself.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
+    <p class="app-ver" id="appVer">Game plan board v6.7</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
 </div>
@@ -141,14 +155,14 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.6" defer></script>
-<script src="board.js?v=v6.6" defer></script>
-<script src="gestures.js?v=v6.6" defer></script>
-<script src="save-open.js?v=v6.6" defer></script>
-<script src="app.js?v=v6.6" defer></script>
-<script src="github-sync.js?v=v6.6" defer></script>
-<script src="directshare.js?v=v6.6" defer></script>
-<script src="botresponse.js?v=v6.6" defer></script>
-<script src="botboard.js?v=v6.6" defer></script>
+<script src="media-db.js?v=v6.7" defer></script>
+<script src="board.js?v=v6.7" defer></script>
+<script src="gestures.js?v=v6.7" defer></script>
+<script src="save-open.js?v=v6.7" defer></script>
+<script src="app.js?v=v6.7" defer></script>
+<script src="github-sync.js?v=v6.7" defer></script>
+<script src="directshare.js?v=v6.7" defer></script>
+<script src="botresponse.js?v=v6.7" defer></script>
+<script src="botboard.js?v=v6.7" defer></script>
 </body>
 </html>

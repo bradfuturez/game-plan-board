@@ -1,4 +1,4 @@
-# BotResponse (Game plan board v6.3+, attachments v6.4+, on the board v6.5+)
+# BotResponse (Game plan board v6.3+, attachments v6.4+, on the board v6.5+, bot tabs v6.7+)
 
 The **BotResponse** tab glows yellow when one of Brad's bots has changed its copy of his game board. Each response
 shows as a mini window (bot, time, title, summary, a list of the changes) with two answers: **Yes, it matches me** or
@@ -36,6 +36,17 @@ with `/workspace/tools/botresponse/send.sh` (full guide: `/workspace/tools/botre
 Optional (v6.5): `windowId` / `toId` = the window's `id` in Brad's `board.json` (stable even if he renames it),
 `titleAfter` (edit: new title; `titleBefore` = old one), `near` / `nearId` (add: put the new window next to this one),
 and response-level `"apply": false` for a response that only describes your own work (shown in the tab, never on the board).
+
+## Bot tabs (v6.7)
+
+Waiting changes are **no longer drawn on the board** (no red glow, callouts or ghost windows). Instead a row of tabs sits
+right under the header, one per bot (`bot`, the `--from` name; long names are shortened, e.g. "CreateAWar Game Developer"
+→ "Game Developer"), each with a red count of things waiting. The row scrolls sideways and is hidden when nothing waits.
+Tapping a tab opens that bot's items in a sheet: every board change (`add`, `edit`, `remove`, `link`, `unlink`) is one item
+with **Yes** (applied exactly as before, undo-able) and **No** (discarded). A response with no board changes (or
+`"apply": false`, or whose windows can't be found) is one item with Yes / No for the whole response. Counts drop as items
+are answered and a bot's tab goes away when it has none left. Answers go back to the bot the same way as below. The
+sections below about the on-board callouts describe v6.5 / v6.6.
 
 ## On the board (v6.5)
 

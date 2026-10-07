@@ -1,10 +1,12 @@
-/* botboard.js: BotResponse ON the board. When a waiting bot response proposes a change to one of Brad's windows
-   (edit / remove / link / unlink, matched by windowId, then exact title, then trimmed case-insensitive title), that
-   window glows red and a white "bot input" callout hangs next to it on a red line, showing who, why, and the window's
-   current text → the bot's version, with Yes (apply it to the window) and No (leave it). "add" changes show as a dashed
-   ghost window with the same Yes / No. Callouts live in screen space so they stay readable at any zoom. Every decision
-   is kept per change (with the old text, so it can be restored; Yes is also undo-able) and, once all of a response's
-   board changes are decided, the response's answer goes back to the bot through the usual answer path. */
+/* botboard.js: BotResponse changes, answered from TABS at the top of the screen (v6.7).
+   Every waiting bot response that proposes changes to Brad's board (add / edit / remove / link / unlink, matched by
+   windowId, then exact title, then trimmed case-insensitive title) is NOT drawn on the board any more. Instead a row of
+   tabs sits right under the header, one per bot that is waiting, each with a red count of things to answer. Tapping a tab
+   opens that bot's list in a sheet: every change shows who, why, and the window's current text → the bot's version, with
+   Yes (apply it to the board, undo-able) and No (leave it). A response that only describes the bot's own work (or whose
+   windows can't be found) is one item with Yes / No for the whole response. Every decision is kept per change (with the
+   old text, so it can be restored) and, once all of a response's board changes are decided, the response's answer goes
+   back to the bot through the usual answer path. The bottom BotResponse button still opens the full list (all bots). */
 'use strict';
 const BB_ACTS = ['edit', 'remove', 'link', 'unlink', 'add'];
 const bbNorm = s => String(s ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
@@ -46,11 +48,10 @@ function bbTabStatus(r, c, i) {
   const t = bbTargets().find(t => t.key === r.id + ':' + i);
   if (!t) return '';
   if (!t.ok) return `<div class="bb-st bb-miss">${t.why === 'window not found' ? 'Window not found on your board' : esc(t.why[0].toUpperCase() + t.why.slice(1))}</div>`;
-  return `<button class="bb-show" data-show="${esc(t.key)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg>Show on board</button>`;
+  return `<div class="bb-btns bb-inline"><button class="bb-y" data-key="${esc(t.key)}" data-a="yes">Yes</button><button class="bb-n" data-key="${esc(t.key)}" data-a="no">No</button></div>`;
 }
 
-/* ---------- ghost windows for "add" ---------- */
-let bbGhostL = null;
+/* ---------- where an "add" lands when you say Yes (same spot as before: next to its "near" window, else right of the board) ---------- */
 function bbGhostPos(t) {
   if (!BR.ghost) BR.ghost = {};
   if (!BR.ghost[t.key]) {
@@ -61,26 +62,6 @@ function bbGhostPos(t) {
     brSave();
   }
   return BR.ghost[t.key];
-}
-function bbGhosts(list) {
-  if (!bbGhostL) { bbGhostL = document.createElement('div'); bbGhostL.id = 'bbGhosts'; bbGhostL.className = 'layer'; world.appendChild(bbGhostL); }
-  bbGhostL.innerHTML = list.filter(t => t.c.type === 'add' && t.ok).map(t => {
-    const p = bbGhostPos(t);
-    return `<div class="bb-ghost" data-key="${esc(t.key)}" style="transform:translate(${p.x}px,${p.y}px)"><div class="bb-ghost-tag">New window from ${esc(t.r.bot)}</div>` +
-      `<div class="ct">${esc(t.c.windowTitle || 'Untitled')}</div><div class="cv">${paraHTML(t.c.after || '')}</div></div>`;
-  }).join('');
-}
-
-/* ---------- glow + callouts ---------- */
-let bbShownSig = '', bbRAF = 0;
-function bbRefresh() {
-  if (typeof cardEls === 'undefined') return;
-  const live = bbLive(), ids = new Set(live.filter(t => t.card).map(t => t.card.id));
-  for (const [id, el] of cardEls) el.classList.toggle('br-glowing', ids.has(id));
-  const sig = bbSig() + '|' + live.map(t => t.card ? t.card.title + '\u0000' + t.card.notes : '').join('|');
-  if (sig !== bbShownSig) { bbShownSig = sig; bbBuild(live); }
-  bbPlaceSoon();
-  bbAutoShow(live);
 }
 function bbText(v) { return `<div class="bb-txt">${paraHTML(v) || '<p class="bb-empty">(empty)</p>'}</div>`; }
 function bbBody(t) {
@@ -100,116 +81,116 @@ function bbBody(t) {
   if (h === '<div class="bb-what">Change this window</div>') h += '<div class="bb-warn">Your window already says this.</div>';
   return h;
 }
-function bbBuild(live) {
-  const box = $('#bbCallouts'), seen = new Set();
-  bbGhosts(live);
-  box.innerHTML = live.map(t => {
-    const first = !seen.has(t.r.id); seen.add(t.r.id);
-    const note = t.c.note || t.r.summary || '';
-    return `<section class="bb-call stage-ui" data-key="${esc(t.key)}" role="group" aria-label="${esc(t.r.bot)} suggests a change">
-      <button class="bb-pill" data-open="${esc(t.key)}"><span class="bb-lab">bot input</span><b>${esc(t.r.bot)}</b><small>${esc(BB_VERB[t.c.type])} · tap to see</small></button>
-      <div class="bb-full"><div class="bb-head"><span class="bb-bot">${esc(t.r.bot)}</span><span class="bb-lab">bot input</span></div>
-      ${note ? `<p class="bb-note">${esc(note)}</p>` : ''}
-      ${bbBody(t)}
-      ${first ? brAtts(t.r) : ''}
-      <div class="bb-btns"><button class="bb-y" data-key="${esc(t.key)}" data-a="yes">Yes</button><button class="bb-n" data-key="${esc(t.key)}" data-a="no">No</button></div></div>
-    </section>`;
-  }).join('');
-  box.querySelectorAll('[data-need]').forEach(el => brEnsure(el.dataset.r, +el.dataset.i));
-}
 const BB_VERB = { edit: 'Change', remove: 'Remove', link: 'Tie', unlink: 'Cut a tie', add: 'New window' };
-// Only one callout is open at a time (the phone is narrow); the others shrink to small "bot input" tags on their lines.
-let bbActive = '', bbFit = null; // bbFit: the callout height Show on board fitted the view to
-function bbPlaceSoon() { if (!bbRAF) bbRAF = requestAnimationFrame(() => { bbRAF = 0; bbPlace(); }); }
-const bbOverlap = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-function bbTargetRect(t, st) {
-  const el = t.card ? cardEls.get(t.card.id) : bbGhostL && bbGhostL.querySelector(`.bb-ghost[data-key="${CSS.escape(t.key)}"]`);
-  if (!el) return null;
-  const r = el.getBoundingClientRect();
-  return { x: r.left - st.left, y: r.top - st.top, w: r.width, h: r.height };
+
+/* ---------- what is waiting, one entry per thing to answer ---------- */
+const btName = r => String((r && (r.bot || r.from)) || 'A bot').trim() || 'A bot';
+// tab label: the bot's name, shortened for a phone ("CreateAWar Game Developer" → "Game Developer")
+function btShort(n) {
+  let s = String(n).trim();
+  if (s.length > 14) s = s.replace(/^creat(e)?\s*a\s*war\s+/i, '') || s;
+  return s.length > 22 ? s.slice(0, 21).trimEnd() + '…' : s;
 }
-function bbPlace() {
-  const box = $('#bbCallouts'), svg = $('#bbLines'); if (!box) return;
-  const st = stage.getBoundingClientRect(), W = Math.min(340, st.width - 24), GAP = 44, placed = [];
-  const live = bbLive(); let lines = '';
-  const rects = new Map(live.map(t => [t.key, bbTargetRect(t, st)]));
-  const onScr = R => R && R.x + R.w > 0 && R.y + R.h > 0 && R.x < st.width && R.y < st.height;
-  if (!live.some(t => t.key === bbActive && onScr(rects.get(t.key)))) { // open the one nearest the middle of the screen
-    let best = null, bd = Infinity;
-    for (const t of live) { const R = rects.get(t.key); if (!onScr(R)) continue; const d = Math.hypot(R.x + R.w / 2 - st.width / 2, R.y + R.h / 2 - st.height / 2); if (d < bd) { bd = d; best = t.key; } }
-    if (best) bbActive = best;
+// {bot, key, kind: 'change' (one board change, Yes = apply) | 'resp' (whole response, Yes = "it matches me"), r, t?}
+function btUnits() {
+  const live = bbLive(), out = [];
+  for (const r of brPending()) {
+    const mine = live.filter(t => t.r.id === r.id);
+    if (mine.length) mine.forEach(t => out.push({ bot: btName(r), key: t.key, kind: 'change', r, t }));
+    else out.push({ bot: btName(r), key: 'r:' + r.id, kind: 'resp', r });
   }
-  const order = [...box.children].sort((p, q) => (q.dataset.key === bbActive) - (p.dataset.key === bbActive));
-  for (const call of order) {
-    const t = live.find(x => x.key === call.dataset.key), R = t && rects.get(t.key);
-    if (!onScr(R)) { call.style.visibility = 'hidden'; continue; }
-    const mini = call.dataset.key !== bbActive; call.classList.toggle('bb-mini', mini);
-    call.style.width = mini ? '' : W + 'px'; call.style.visibility = 'visible';
-    const H = call.offsetHeight, cx = R.x + R.w / 2, W0 = W, Wc = mini ? call.offsetWidth : W;
-    { const W = Wc;
-    const X = clamp(cx - W / 2, 12, st.width - W - 12);
-    const cands = [
-      { side: 'above', x: X, y: R.y - GAP - H }, { side: 'below', x: X, y: R.y + R.h + GAP },
-      { side: 'right', x: R.x + R.w + GAP, y: clamp(R.y, 8, st.height - H - 8) }, { side: 'left', x: R.x - GAP - W, y: clamp(R.y, 8, st.height - H - 8) }];
-    const fits = p => p.x >= 8 && p.y >= 8 && p.x + W <= st.width - 8 && p.y + H <= st.height - 8;
-    const free = p => !placed.some(q => bbOverlap({ x: p.x, y: p.y, w: W, h: H }, q)) && !bbOverlap({ x: p.x, y: p.y, w: W, h: H }, R);
-    let p = cands.find(q => fits(q) && free(q));
-    if (!p && mini) { // a small tag: nudge it up / down to a free spot, or leave just the glow
-      for (const dy of [-56, 56, -112, 112, -168, 168]) { p = cands.map(q => ({ ...q, y: q.y + dy })).find(q => fits(q) && free(q)); if (p) break; }
-      if (!p) { call.style.visibility = 'hidden'; continue; }
-    }
-    p = p || cands.find(fits);
-    call.style.zIndex = mini ? 1 : 2;
-    if (!mini && bbFit && bbFit.key === call.dataset.key && Math.abs(H - bbFit.H) > 8 && Date.now() - bbFit.at < 6000) { const k = bbFit.key; bbFit = null; setTimeout(() => bbShow(k, true), 0); } // it grew (photo loaded): fit again
-    if (!p) { // not enough room: the side with more space, kept on screen
-      const up = R.y > st.height - (R.y + R.h);
-      p = { side: up ? 'above' : 'below', x: X, y: up ? R.y - GAP - H : R.y + R.h + GAP }; // never on top of the window; drag the board to read the rest
-    }
-    call.style.transform = `translate(${Math.round(p.x)}px,${Math.round(p.y)}px)`;
-    call.dataset.side = p.side;
-    placed.push({ x: p.x, y: p.y, w: W, h: H });
-    // red connector line: callout edge → window edge, with a little sag like the ropes
-    let a, b;
-    if (p.side === 'above') { a = { x: clamp(cx, p.x + 24, p.x + W - 24), y: p.y + H }; b = { x: cx, y: R.y + 4 }; }
-    else if (p.side === 'below') { a = { x: clamp(cx, p.x + 24, p.x + W - 24), y: p.y }; b = { x: cx, y: R.y + R.h - 4 }; }
-    else if (p.side === 'right') { a = { x: p.x, y: p.y + 30 }; b = { x: R.x + R.w - 4, y: clamp(p.y + 30, R.y + 10, R.y + R.h - 10) }; }
-    else { a = { x: p.x + W, y: p.y + 30 }; b = { x: R.x + 4, y: clamp(p.y + 30, R.y + 10, R.y + R.h - 10) }; }
-    const d = threadPath(a, b);
-    lines += `<path class="bb-glw${mini ? ' bb-thin' : ''}" d="${d}"/><path class="bb-str${mini ? ' bb-thin' : ''}" d="${d}"/><circle class="bb-dot" cx="${b.x.toFixed(1)}" cy="${b.y.toFixed(1)}" r="5"/>`;
-    }
-  }
-  svg.innerHTML = lines;
+  return out;
+}
+function btGroups(units) { // [[bot, units]] in order of the newest response
+  const m = new Map();
+  for (const u of units) { if (!m.has(u.bot)) m.set(u.bot, []); m.get(u.bot).push(u); }
+  return [...m];
 }
 
-/* ---------- Show on board: pan / zoom so the window and its callout both fit ---------- */
-function bbShow(key, quiet) {
-  const t = bbLive().find(x => x.key === key); if (!t) return false;
-  bbActive = key; const cl = $(`#bbCallouts .bb-call[data-key="${CSS.escape(key)}"]`); if (cl) cl.classList.remove('bb-mini');
-  if (openSheet) closeSheet();
-  const st = stage.getBoundingClientRect(), call = $(`#bbCallouts .bb-call[data-key="${CSS.escape(key)}"]`);
-  const W = Math.min(340, st.width - 24); if (call) call.style.width = W + 'px';
-  const H = call ? call.offsetHeight : 260; bbFit = { key, H, at: Date.now() };
-  let x0, y0, w, h;
-  if (t.card) { x0 = t.card.x; y0 = t.card.y; w = cardW(t.card); h = cardH(t.card); }
-  else { const g = bbGhostPos(t), el = bbGhostL && bbGhostL.querySelector(`.bb-ghost[data-key="${CSS.escape(key)}"]`); x0 = g.x; y0 = g.y; w = el ? el.offsetWidth : 240; h = el ? el.offsetHeight : 140; }
-  const GAP = 44, room = st.height - H - GAP - 24; // callout above, window under it, both on screen
-  const z = clamp(Math.min(1.1, (st.width - 40) / w, room / h), Math.max(MINZ, 0.2), MAXZ), total = H + GAP + h * z;
-  const top = total <= st.height - 16 ? (st.height - total) / 2 + H + GAP : 12; // too tall: window at the top, callout under it
-  S.view = { x: Math.round(st.width / 2 - (x0 + w / 2) * z), y: Math.round(top - y0 * z), z };
-  applyView(); changed();
-  const el = t.card ? cardEls.get(t.card.id) : null;
-  if (el && !quiet) { el.classList.remove('bb-flash'); void el.offsetWidth; el.classList.add('bb-flash'); setTimeout(() => el.classList.remove('bb-flash'), 1000); }
-  bbPlaceSoon();
-  return true;
+/* ---------- the tabs under the header ---------- */
+let btBot = null, btTabSig = '', btListSig = '', btLastYes = null;
+const btCount = n => n > 99 ? '99+' : String(n);
+function btRenderTabs(groups) {
+  const bar = $('#botTabs'); if (!bar) return;
+  const sig = JSON.stringify(groups.map(([b, l]) => [b, l.length]));
+  if (sig === btTabSig) return; btTabSig = sig;
+  bar.hidden = !groups.length;
+  bar.innerHTML = groups.map(([b, l]) => `<button class="bt-tab" role="tab" data-bot="${esc(b)}" title="${esc(b)}" aria-label="${esc(b)}: ${l.length} waiting for your answer">` +
+    `<span class="bt-name">${esc(btShort(b))}</span><b class="bt-badge">${btCount(l.length)}</b></button>`).join('');
 }
-// a response that arrives (or is waiting when the app opens) gets shown once by itself
-function bbAutoShow(live) {
-  if (!BR.bbSeen) BR.bbSeen = {};
-  const fresh = live.filter(t => !BR.bbSeen[t.key]);
-  if (!fresh.length) return;
-  fresh.forEach(t => { BR.bbSeen[t.key] = 1; }); brSave();
-  if (openSheet || document.activeElement?.closest?.('.card')) return;
-  setTimeout(() => bbShow(fresh[0].key, true), 60);
+
+/* ---------- the sheet: one bot's waiting items (or every bot's, btBot = '') ---------- */
+function btCard(u, first) {
+  const r = u.r, when = dsWhen(r.createdAt);
+  const top = `<div class="bt-top"><span class="bt-who">${btBot ? '' : esc(u.bot)}</span>${when ? `<span class="bt-when">${esc(when)}</span>` : ''}</div>`;
+  if (u.kind === 'change') {
+    const t = u.t, note = t.c.note || (first ? r.summary : '') || '';
+    return `<article class="bt-card" data-key="${esc(u.key)}">${top}
+      <span class="bt-verb bt-v-${esc(t.c.type)}">${esc(BB_VERB[t.c.type])}</span>
+      ${first && r.title ? `<h3>${esc(r.title)}</h3>` : ''}
+      ${t.card ? `<div class="bt-win">Your window: <b>“${esc(t.card.title || 'Untitled')}”</b></div>` : ''}
+      ${note ? `<p class="bb-note">${esc(note)}</p>` : ''}
+      ${bbBody(t)}
+      ${first ? brAtts(r) : ''}
+      <div class="bb-btns"><button class="bb-y" data-key="${esc(t.key)}" data-a="yes">Yes</button><button class="bb-n" data-key="${esc(t.key)}" data-a="no">No</button></div>
+    </article>`;
+  }
+  const n = (r.changes || []).length;
+  return `<article class="bt-card" data-key="${esc(u.key)}">${top}
+    <span class="bt-verb bt-v-resp">Update</span>
+    <h3>${esc(r.title || 'Changes to the board')}</h3>
+    ${r.summary ? `<p class="bb-note bt-sum">${esc(r.summary)}</p>` : ''}
+    ${brAtts(r)}
+    ${n ? `<div class="br-ch-head">${n} change${n > 1 ? 's' : ''}</div><ul class="br-changes">${r.changes.map((c, i) => brChange(c, i, r)).join('')}</ul>` : ''}
+    <div class="bt-ask">Does this match your board?</div>
+    <div class="bb-btns"><button class="bb-y" data-resp="${esc(r.id)}" data-a="yes">Yes</button><button class="bb-n" data-resp="${esc(r.id)}" data-a="no">No</button></div>
+  </article>`;
+}
+function btRenderSheet(units, force) {
+  const mine = btBot ? units.filter(u => u.bot === btBot) : units;
+  const sig = JSON.stringify([btBot, mine.map(u => u.key), bbShownSig]);
+  if (!force && sig === btListSig) return mine.length; btListSig = sig;
+  $('#btHead').textContent = btBot || 'All bots';
+  $('#btSub').textContent = mine.length ? `${mine.length} waiting · Yes puts it on your board, No throws it away` : 'All caught up';
+  const seen = new Set();
+  $('#btList').innerHTML = mine.length ? mine.map(u => { const f = !seen.has(u.r.id); seen.add(u.r.id); return btCard(u, f); }).join('')
+    : '<div class="br-empty"><b>All caught up</b>Nothing from your bots is waiting.</div>';
+  $('#btList').querySelectorAll('[data-need]').forEach(el => brEnsure(el.dataset.r, +el.dataset.i));
+  return mine.length;
+}
+function btOpen(bot) {
+  btBot = bot || ''; btLastYes = null;
+  const left = btRenderSheet(btUnits(), true);
+  if (!left) return;
+  showSheet('#btSheet'); $('#btSheet .panel').scrollTop = 0;
+}
+const btIsOpen = () => openSheet && openSheet.id === 'btSheet';
+
+/* ---------- keep tabs + sheet in step with what is waiting ---------- */
+let bbShownSig = '';
+function bbRefresh() {
+  if (typeof cardEls === 'undefined') return;
+  const live = bbLive();
+  bbShownSig = bbSig() + '|' + live.map(t => t.card ? t.card.title + '\u0000' + t.card.notes : '').join('|');
+  const units = btUnits();
+  btRenderTabs(btGroups(units));
+  if (btIsOpen()) {
+    const left = btRenderSheet(units);
+    if (!left) { closeSheet(); setTimeout(() => { if (btLastYes) bbShow(btLastYes); btLastYes = null; }, 280); } // that bot is done: close, show the last window you said yes to
+  }
+}
+function bbPlaceSoon() {} // nothing is drawn on the board any more (kept: other files call it)
+
+/* ---------- Show on board: pan / zoom to a window (used after the last Yes) ---------- */
+function bbShow(id) {
+  const c = byId(String(id)); if (!c) return false;
+  const st = stage.getBoundingClientRect(), w = cardW(c), h = cardH(c);
+  const z = clamp(Math.min(1, (st.width - 40) / w, (st.height - 40) / h), Math.max(MINZ, 0.2), MAXZ);
+  S.view = { x: Math.round(st.width / 2 - (c.x + w / 2) * z), y: Math.round(st.height / 2 - (c.y + h / 2) * z), z };
+  applyView(); changed();
+  const el = cardEls.get(c.id);
+  if (el) { el.classList.remove('bb-flash'); void el.offsetWidth; el.classList.add('bb-flash'); setTimeout(() => el.classList.remove('bb-flash'), 1000); }
+  return true;
 }
 
 /* ---------- Yes / No ---------- */
@@ -256,21 +237,27 @@ function bbDecide(key, answer) {
   if (BR.answers[r.id] && !BR.answers[r.id].synced) brSync().then(() => brRender()).catch(() => {});
 }
 
-/* ---------- wiring: follow the board as it pans, zooms, redraws ---------- */
-$('#bbCallouts').addEventListener('click', e => {
-  const b = e.target.closest('button[data-key]'); if (b) { bbDecide(b.dataset.key, b.dataset.a); return; }
-  const o = e.target.closest('button[data-open]'); if (o) { bbShow(o.dataset.open); return; }
+/* ---------- wiring ---------- */
+$('#botTabs').addEventListener('click', e => { const b = e.target.closest('.bt-tab'); if (b) btOpen(b.dataset.bot); });
+$('#btList').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-key]');
+  if (b) {
+    const key = b.dataset.key, t = bbTargets().find(x => x.key === key);
+    const card = b.closest('.bt-card'); if (card) card.classList.add(b.dataset.a === 'yes' ? 'chose-yes' : 'chose-no');
+    bbDecide(key, b.dataset.a);
+    if (BR.decisions[key]) { if (b.dataset.a === 'yes' && BR.decisions[key].windowId && (!t || t.c.type !== 'remove')) btLastYes = BR.decisions[key].windowId; }
+    else if (card) card.classList.remove('chose-yes', 'chose-no'); // cancelled (e.g. "Remove?" → Cancel)
+    return;
+  }
+  const r = e.target.closest('button[data-resp]'); if (r) { await brAnswer(r.dataset.resp, r.dataset.a, r); return; }
   brAttClick(e);
 });
 {
-  const _applyView = applyView, _posCard = posCard, _renderAll = renderAll, _changed = changed;
-  applyView = function () { _applyView(); world.style.setProperty('--bz', String(Math.min(8, 1 / S.view.z))); bbPlaceSoon(); };
-  posCard = function (c) { _posCard(c); bbPlaceSoon(); };
-  renderAll = function () { _renderAll(); bbShownSig = ''; bbRefresh(); };
+  const _applyView = applyView, _renderAll = renderAll, _changed = changed;
+  applyView = function () { _applyView(); world.style.setProperty('--bz', String(Math.min(8, 1 / S.view.z))); };
+  renderAll = function () { _renderAll(); bbRefresh(); };
   let t = 0; changed = function () { _changed(); clearTimeout(t); t = setTimeout(bbRefresh, 120); };
 }
-addEventListener('resize', bbPlaceSoon);
 if (S.view) world.style.setProperty('--bz', String(Math.min(8, 1 / S.view.z)));
 requestAnimationFrame(() => bbRefresh());
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { bbShownSig = ''; bbRefresh(); });
-window.__gpb.bb = { targets: bbTargets, show: bbShow, decide: bbDecide, find: bbFind };
+window.__gpb.bb = { targets: bbTargets, units: btUnits, open: btOpen, show: bbShow, decide: bbDecide, find: bbFind };
