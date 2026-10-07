@@ -4,7 +4,7 @@
 const KEY = 'gpb.board.v1', THEME_KEY = 'gpb.theme';
 const PIN_Y = 12, MINZ = 0.05, MAXZ = 2.5, GRID = 24;
 const $ = s => document.querySelector(s);
-const stage = $('#stage'), world = $('#world'), cardsL = $('#cards'), pinsL = $('#pins'), hitsL = $('#hits'), threadsL = $('#threads'), mediaL = $('#media');
+const stage = $('#stage'), world = $('#world'), cardsL = $('#cards'), pinsL = $('#pins'), hitsL = $('#hits'), threadsL = $('#threads'), mediaL = $('#media'), glowL = $('#ropeGlow');
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const uid = () => Math.random().toString(36).slice(2, 10);
 const rndTilt = () => Math.round((Math.random() * 4 - 2) * 10) / 10;
@@ -176,22 +176,88 @@ function placeItem(it) {
 function posItem(it) { const el = itemEls.get(it.id); if (el && !it.in) el.style.transform = `translate(${it.x}px,${it.y}px)`; }
 function removeItemEl(id) { itemEls.get(id)?.remove(); itemEls.delete(id); }
 
-/* ---------- ropes (drawn in a layer UNDER the windows) ---------- */
+/* ---------- ropes (drawn in a layer UNDER the windows; v6.8 adds a faint glowing trace ON TOP where they pass under one) ---------- */
 function threadPath(a, b) {
   const d = Math.hypot(b.x - a.x, b.y - a.y), sag = Math.min(70, d * 0.16);
   return `M${a.x.toFixed(1)} ${a.y.toFixed(1)} Q${((a.x + b.x) / 2).toFixed(1)} ${((a.y + b.y) / 2 + sag).toFixed(1)} ${b.x.toFixed(1)} ${b.y.toFixed(1)}`;
 }
 function renderThreads() {
-  let h = '', v = '';
+  let h = '', v = ''; const ropes = [];
   S.threads.forEach((t, i) => {
     const A = byId(t.a), B = byId(t.b); if (!A || !B) return;
     const orange = t.kind === 'orange';
-    const p = orange ? threadPath(centerPos(A), centerPos(B)) : threadPath(pinPos(A), pinPos(B));
+    const a = orange ? centerPos(A) : pinPos(A), b = orange ? centerPos(B) : pinPos(B), p = threadPath(a, b);
     h += `<path data-t="${i}" d="${p}"/>`;
     v += `<path class="shd" d="${p}"/>` + (orange ? `<path class="rope" d="${p}"/><path class="rope2" d="${p}"/>` : `<path class="glw" d="${p}"/><path class="glw2" d="${p}"/><path class="str" d="${p}"/><path class="hot" d="${p}"/>`);
+    ropes.push({ a, b, p, orange, ends: [t.a, t.b] });
   });
   if (band && byId(band.from)) { const a = centerPos(byId(band.from)); v += `<path class="band" d="M${a.x.toFixed(1)} ${a.y.toFixed(1)} L${band.pt.x.toFixed(1)} ${band.pt.y.toFixed(1)}"/>`; }
   hitsL.innerHTML = h; threadsL.innerHTML = v;
+  renderRopeGlow(ropes);
+}
+/* v6.8 rope glow: windows are opaque, so on a crowded board a rope vanishes behind every window it passes under. For each rope we
+   draw a thin, faint trace in the rope's own colour (a soft wide stroke + a thin core, low opacity) in the #ropeGlow layer ABOVE
+   the windows, but only the pieces of the rope that lie under a window (tilt and the Main Window tab/ring included; NOT the two
+   windows the rope is tied to, so a hub window doesn't get a starburst of lines, and not the window being typed in).
+   Cheap on a phone with ~100 windows: the pieces are cut out of each rope's curve in JS (exact sub-curves, no SVG clip-path or
+   mask, no blur filter) and all of them go into just 4 <path>s (orange/red x halo/core). The layer lives inside #world, so
+   pan / zoom move it for free; drags re-draw it together with the ropes. pointer-events:none, so taps go straight to the window. */
+const GLOW_SEG = 32; // straight pieces used to find where a curved rope enters / leaves a window
+function glowBoxes() {
+  const bz = Math.min(8, 1 / (S.view?.z || 1)), out = [];
+  for (const c of S.cards) {
+    const el = cardEls.get(c.id); if (!el || el.classList.contains('editing')) continue;
+    const w = cardW(c), hh = el.offsetHeight || 116, tilt = el.classList.contains('drop') ? 0 : c.tilt;
+    let x = c.x, y = c.y, W = w, H = hh;
+    if (c.main) { const mw = 4 * bz, th = el.querySelector('.mtab')?.offsetHeight || 0; x -= mw; y -= mw + th; W += 2 * mw; H += 2 * mw + th; } // purple ring + tab are opaque too
+    const a = tilt * Math.PI / 180, pad = Math.abs(Math.sin(a)) * (W + H) + 2; // the small tilt can only push corners this far
+    out.push({ id: c.id, x, y, W, H, cos: Math.cos(a), sin: Math.sin(a), ox: c.x + w / 2, oy: c.y + PIN_Y, x0: x - pad, y0: y - pad, x1: x + W + pad, y1: y + H + pad });
+  }
+  return out;
+}
+function segInBox(ax, ay, bx, by, r, out) { // Liang-Barsky: part [u0,u1] of segment a-b inside box r (x,y,W,H); false if none
+  let u0 = 0, u1 = 1; const dx = bx - ax, dy = by - ay;
+  const ps = [-dx, dx, -dy, dy], qs = [ax - r.x, r.x + r.W - ax, ay - r.y, r.y + r.H - ay];
+  for (let k = 0; k < 4; k++) {
+    const pk = ps[k], qk = qs[k];
+    if (pk === 0) { if (qk < 0) return false; continue; }
+    const t = qk / pk;
+    if (pk < 0) { if (t > u1) return false; if (t > u0) u0 = t; } else { if (t < u0) return false; if (t < u1) u1 = t; }
+  }
+  out[0] = u0; out[1] = u1; return u1 > u0;
+}
+function renderRopeGlow(ropes) {
+  if (!glowL) return;
+  const boxes = ropes.length ? glowBoxes() : [], d = { o: '', r: '' }, uu = [0, 0], f = v => v.toFixed(1);
+  for (const r of ropes) {
+    const { a, b } = r, sag = Math.min(70, Math.hypot(b.x - a.x, b.y - a.y) * 0.16), cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2 + sag;
+    const bx0 = Math.min(a.x, b.x, cx), bx1 = Math.max(a.x, b.x, cx), by0 = Math.min(a.y, b.y, cy), by1 = Math.max(a.y, b.y, cy);
+    let pts = null; const spans = [];
+    for (const B of boxes) {
+      if (B.id === r.ends[0] || B.id === r.ends[1] || B.x1 < bx0 || B.x0 > bx1 || B.y1 < by0 || B.y0 > by1) continue;
+      if (!pts) { pts = []; for (let k = 0; k <= GLOW_SEG; k++) { const t = k / GLOW_SEG, u = 1 - t; pts.push(u * u * a.x + 2 * u * t * cx + t * t * b.x, u * u * a.y + 2 * u * t * cy + t * t * b.y); } }
+      // into the window's own (un-tilted) frame, then cut the rope's straight pieces against its rect
+      const loc = (k) => { const px = pts[k] - B.ox, py = pts[k + 1] - B.oy; return [B.ox + px * B.cos + py * B.sin, B.oy - px * B.sin + py * B.cos]; };
+      let prev = loc(0);
+      for (let k = 0; k < GLOW_SEG; k++) {
+        const nxt = loc(2 * k + 2);
+        if (segInBox(prev[0], prev[1], nxt[0], nxt[1], B, uu)) spans.push([(k + uu[0]) / GLOW_SEG, (k + uu[1]) / GLOW_SEG]);
+        prev = nxt;
+      }
+    }
+    if (!spans.length) continue;
+    spans.sort((p, q) => p[0] - q[0]); // merge overlapping pieces (stacked windows) so no spot is drawn twice
+    const merged = [spans[0].slice()];
+    for (let k = 1; k < spans.length; k++) { const m = merged[merged.length - 1]; if (spans[k][0] <= m[1] + 1e-6) m[1] = Math.max(m[1], spans[k][1]); else merged.push(spans[k].slice()); }
+    for (const [t0, t1] of merged) { // exact piece of the quadratic curve between t0 and t1 (blossoming)
+      if (t1 - t0 < 1e-4) continue;
+      const P = (s, t) => [(1 - s) * (1 - t) * a.x + ((1 - s) * t + s * (1 - t)) * cx + s * t * b.x, (1 - s) * (1 - t) * a.y + ((1 - s) * t + s * (1 - t)) * cy + s * t * b.y];
+      const q0 = P(t0, t0), q1 = P(t0, t1), q2 = P(t1, t1);
+      d[r.orange ? 'o' : 'r'] += `M${f(q0[0])} ${f(q0[1])}Q${f(q1[0])} ${f(q1[1])} ${f(q2[0])} ${f(q2[1])}`;
+    }
+  }
+  glowL.innerHTML = (d.r ? `<path class="rg-r rg-halo" d="${d.r}"/><path class="rg-r rg-core" d="${d.r}"/>` : '') +
+    (d.o ? `<path class="rg-o rg-halo" d="${d.o}"/><path class="rg-o rg-core" d="${d.o}"/>` : '');
 }
 let threadsRAF = 0;
 function scheduleThreads() { if (!threadsRAF) threadsRAF = requestAnimationFrame(() => { threadsRAF = 0; renderThreads(); }); }
@@ -211,12 +277,14 @@ function renderAll() {
 }
 
 /* ---------- view ---------- */
+let glowZ = 0, glowZT = 0;
 function applyView() {
   const { x, y, z } = S.view;
   world.style.transform = `translate(${x}px,${y}px) scale(${z})`;
   let g = GRID * z; while (g < 12) g *= 4; // keep the grid readable when zoomed far out
   stage.style.backgroundSize = `${g}px ${g}px`;
   stage.style.backgroundPosition = `${x}px ${y}px`;
+  if (z !== glowZ) { glowZ = z; clearTimeout(glowZT); glowZT = setTimeout(scheduleThreads, 160); } // Main Window ring/tab size follows zoom: refit the rope glow when a pinch settles
 }
 function screenToWorld(cx, cy) { const r = stage.getBoundingClientRect(), v = S.view; return { x: (cx - r.left - v.x) / v.z, y: (cy - r.top - v.y) / v.z }; }
 function viewCenter() { const r = stage.getBoundingClientRect(); return screenToWorld(r.left + r.width / 2, r.top + r.height / 2); }

@@ -159,7 +159,7 @@ function takeOut(id) {
 const ptrs = new Map();
 let g = null, pinch = null, holdT = 0;
 const cardAt = (x, y) => document.elementFromPoint(x, y)?.closest?.('.card')?.dataset.id || null;
-function mark(cls, id) { document.querySelectorAll('.card.' + cls).forEach(el => { if (el.dataset.id !== id) { el.classList.remove(cls); const c = byId(el.dataset.id); c && posCard(c); } }); if (id && cardEls.has(id) && !cardEls.get(id).classList.contains(cls)) { cardEls.get(id).classList.add(cls); posCard(byId(id)); } }
+function mark(cls, id) { document.querySelectorAll('.card.' + cls).forEach(el => { if (el.dataset.id !== id) { el.classList.remove(cls); const c = byId(el.dataset.id); c && posCard(c); } }); if (id && cardEls.has(id) && !cardEls.get(id).classList.contains(cls)) { cardEls.get(id).classList.add(cls); posCard(byId(id)); } if (cls === 'drop') scheduleThreads(); } // v6.8: rope glow follows the un-tilted drop window
 let lastPtrType = '';
 stage.addEventListener('pointerdown', e => {
   lastPtrType = e.pointerType;

@@ -39,6 +39,16 @@ svg.layer{pointer-events:none}
 #threads .rope2{stroke:#FFD19A;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-dasharray:3 7}
 #threads .band{stroke:#FF8A1F;stroke-width:4;fill:none;stroke-linecap:round;stroke-dasharray:10 8;animation:march .6s linear infinite}
 @keyframes march{to{stroke-dashoffset:-18}}
+/* v6.8: faint glowing trace of each rope ON TOP of the windows it passes under (board.js renderRopeGlow cuts out just those pieces).
+   4 plain paths with low opacity (no clip-path / mask / blur filter: cheap on a phone with ~100 windows); never catches taps.
+   Above windows (incl. dragged / bot-glowing ones, z-index 5 / 3); thin at any zoom (--bz = 1/zoom, set by botboard.js). */
+#ropeGlow{z-index:6}
+#ropeGlow,#ropeGlow *{pointer-events:none}
+#ropeGlow path{fill:none;stroke-linecap:butt}
+#ropeGlow .rg-halo{stroke-width:max(8px,calc(3.2px * var(--bz)));stroke-opacity:.10}
+#ropeGlow .rg-core{stroke-width:max(2px,calc(1px * var(--bz)));stroke-opacity:.28}
+#ropeGlow .rg-r{stroke:var(--thread)}
+#ropeGlow .rg-o{stroke:#FF8A1F}
 
 /* Windows (cards) */
 .card{position:absolute;left:0;top:0;width:176px;min-height:116px;padding:24px 14px 14px;background:var(--card);color:var(--card-ink);border-radius:4px;box-shadow:0 2px 3px var(--shadow),0 10px 22px -8px var(--shadow);transform-origin:50% 12px;cursor:pointer;outline:none;transition:box-shadow .15s}
