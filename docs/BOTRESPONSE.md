@@ -1,4 +1,4 @@
-# BotResponse (Game plan board v6.3+, attachments v6.4+, on the board v6.5+, bot tabs v6.7+)
+# BotResponse (Game plan board v6.3+, attachments v6.4+, on the board v6.5+, bot tabs v6.7+, locate v6.9+)
 
 The **BotResponse** tab glows yellow when one of Brad's bots has changed its copy of his game board. Each response
 shows as a mini window (bot, time, title, summary, a list of the changes) with two answers: **Yes, it matches me** or
@@ -36,6 +36,17 @@ with `/workspace/tools/botresponse/send.sh` (full guide: `/workspace/tools/botre
 Optional (v6.5): `windowId` / `toId` = the window's `id` in Brad's `board.json` (stable even if he renames it),
 `titleAfter` (edit: new title; `titleBefore` = old one), `near` / `nearId` (add: put the new window next to this one),
 and response-level `"apply": false` for a response that only describes your own work (shown in the tab, never on the board).
+
+## Show me the window (v6.9)
+
+Tapping the white part of a card (in a bot tab's sheet or the BotResponse list, anywhere except Yes / No, photos, files or
+links) closes the sheet, flies the board to the window(s) the card is about and makes them glow **orange** (ring + pulsing
+halo + "▲ The bot means this" tag) until Brad taps elsewhere on the board, goes back, or 7 s pass. A floating **Back to Bot
+Responses** button (or the phone's back button) reopens the sheet at the same card and scroll position. In the BotResponse
+list, tapping one change line shows just that change's window(s). Windows are matched like the cards: `windowId`, then
+the exact title (then trimmed / case-insensitive). `link` / `unlink` frame both windows and light their rope if it exists.
+`add`: the existing window it will be tied to (a `link` in the same response) or placed next to (`near` / `nearId`)
+glows; otherwise a toast says the window is new. A window that is gone gets a toast. Nothing about the data changes.
 
 ## Bot tabs (v6.7)
 

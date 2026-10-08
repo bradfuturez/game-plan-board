@@ -19,7 +19,7 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.8">
+<link rel="stylesheet" href="styles.css?v=v6.9">
 </head>
 <body>
 <header>
@@ -34,6 +34,7 @@
   <div id="world">
     <svg id="threads" class="layer" aria-hidden="true"></svg>
     <svg id="hits" class="layer" aria-hidden="true"></svg>
+    <svg id="locRope" class="layer" aria-hidden="true"></svg><!-- v6.9: the rope a bot's TIE card is about, lit while you look at it -->
     <div id="cards" class="layer"></div>
     <svg id="ropeGlow" class="layer" aria-hidden="true"></svg><!-- v6.8: faint glow of the ropes ON TOP of the windows they pass under -->
     <div id="pins" class="layer"></div>
@@ -41,6 +42,8 @@
   </div>
   <div id="empty" hidden><div><b>Your board is empty</b>Hold your finger on the board for a menu, or press <strong>Add window</strong>.</div></div>
   <div id="linkBar" class="stage-ui" hidden role="status"><span></span><button id="linkCancel">Cancel</button></div>
+  <!-- v6.9: shown after tapping a bot's card to see its window(s) on the board; reopens the list at the same card -->
+  <div id="locBar" class="stage-ui" hidden><div class="loc-in"><button id="locBack"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Back to Bot Responses</button><button id="locX" aria-label="Stop showing the bot's window"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg></button></div></div>
   <div id="zoom" class="stage-ui">
     <button id="zoomIn" aria-label="Zoom in">+</button>
     <button id="zoomOut" aria-label="Zoom out">&minus;</button>
@@ -139,8 +142,9 @@
     <p><b>DirectShare</b> (in More) is your mailbox from your bots: when they send you a note, photo, video or file, the DirectShare box glows red and <b>More</b> gets a red dot. Tap DirectShare and each item lands in its own window in the middle of the screen. Move them like any other window.</p>
     <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Tap a photo to see it full size; videos play right there; tap a file to open it. Your answer goes back to the bot.</p>
     <p><b>Bot tabs</b> (top of the screen, under the title): when a bot has changes waiting, it gets its own tab with a red number. Tap the tab to see that bot's new windows and changes, then tap <b>Yes</b> to put each one on your board or <b>No</b> to throw it away. The number goes down as you answer; the tab goes away when that bot has nothing left. Nothing pops up on the board by itself.</p>
+    <p><b>Which window does the bot mean?</b> In a bot's list (a bot tab or BotResponse), tap the white part of a card (not the Yes / No buttons). The list slides away, the board moves to that window and it glows <b>orange</b> for a few seconds. For a <b>Tie</b> you see both windows (and the rope, if it's already tied). Tap <b>Back to Bot Responses</b> (or your phone's back button) to return to the same card and answer Yes or No.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
-    <p class="app-ver" id="appVer">Game plan board v6.8</p>
+    <p class="app-ver" id="appVer">Game plan board v6.9</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
 </div>
@@ -157,14 +161,15 @@
 
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.8" defer></script>
-<script src="board.js?v=v6.8" defer></script>
-<script src="gestures.js?v=v6.8" defer></script>
-<script src="save-open.js?v=v6.8" defer></script>
-<script src="app.js?v=v6.8" defer></script>
-<script src="github-sync.js?v=v6.8" defer></script>
-<script src="directshare.js?v=v6.8" defer></script>
-<script src="botresponse.js?v=v6.8" defer></script>
-<script src="botboard.js?v=v6.8" defer></script>
+<script src="media-db.js?v=v6.9" defer></script>
+<script src="board.js?v=v6.9" defer></script>
+<script src="gestures.js?v=v6.9" defer></script>
+<script src="save-open.js?v=v6.9" defer></script>
+<script src="app.js?v=v6.9" defer></script>
+<script src="github-sync.js?v=v6.9" defer></script>
+<script src="directshare.js?v=v6.9" defer></script>
+<script src="botresponse.js?v=v6.9" defer></script>
+<script src="botboard.js?v=v6.9" defer></script>
+<script src="locate.js?v=v6.9" defer></script>
 </body>
 </html>

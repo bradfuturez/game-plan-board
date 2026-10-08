@@ -365,3 +365,37 @@ svg.layer{pointer-events:none}
 .bt-win{margin:4px 0 2px;font-size:14px;color:#454850}.bt-win b{color:#1E2126}
 /* while a bot sheet is open the toast (with Undo) goes to the top, over the dimmed board, so it never covers Yes / No */
 body:has(#btSheet.open) #toast,body:has(#brSheet.open) #toast{bottom:auto;top:calc(10px + var(--sat))}
+
+/* v6.9: tap a bot's card → its window(s) on the board glow ORANGE (thick orange ring with a gap, pulsing orange halo,
+   orange "▲ The bot means this" tag). Sized with --bz (1/zoom) so it reads the same at any zoom. Distinct from the
+   yellow BotResponse tab, the red bot glow, the purple Main Window and the thin rope glow. Plain CSS: only an opacity pulse
+   on the halo while something is highlighted, nothing at all otherwise. */
+.card.loc-glow{outline:calc(5px * var(--bz)) solid #FF7A00;outline-offset:calc(5px * var(--bz));z-index:4}
+.pin.loc-glow{z-index:4}
+.card.loc-glow::before{content:"";position:absolute;inset:calc(-10px * var(--bz));border-radius:calc(8px * var(--bz));pointer-events:none;
+  box-shadow:0 0 0 calc(3px * var(--bz)) rgba(255,214,170,.95),0 0 calc(26px * var(--bz)) calc(10px * var(--bz)) rgba(255,122,0,.95),0 0 calc(70px * var(--bz)) calc(26px * var(--bz)) rgba(255,122,0,.45);
+  animation:locPulse .9s ease-in-out infinite alternate}
+@keyframes locPulse{from{opacity:.3}to{opacity:1}}
+.card.loc-glow:not(.drop)::after{content:"▲ The bot means this";position:absolute;left:50%;top:calc(100% + 16px * var(--bz));transform:translateX(-50%);white-space:nowrap;
+  padding:calc(5px * var(--bz)) calc(12px * var(--bz));border-radius:999px;background:#FF7A00;color:#1F1000;font:800 calc(14px * var(--bz))/1.2 var(--body);letter-spacing:.01em;
+  box-shadow:0 0 calc(14px * var(--bz)) rgba(255,122,0,.85);pointer-events:none}
+.card.loc-glow.loc-tl::after{left:calc(-6px * var(--bz));transform:none}
+.card.loc-glow.loc-tr::after{left:auto;right:calc(-6px * var(--bz));transform:none}
+#locRope path{fill:none;stroke-linecap:round}
+#locRope .lr-halo{stroke:#FF7A00;stroke-opacity:.45;stroke-width:max(18px,calc(12px * var(--bz)))}
+#locRope .lr-core{stroke:#FFE0B8;stroke-width:max(4px,calc(3px * var(--bz)));animation:locPulse .9s ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){.card.loc-glow::before,#locRope .lr-core{animation:none}}
+#locBar{position:absolute;left:calc(12px + var(--sal));right:calc(68px + var(--sar));bottom:14px;z-index:12;display:flex;justify-content:center;pointer-events:none}
+#locBar[hidden]{display:none}
+#locBar .loc-in{pointer-events:auto;display:flex;align-items:stretch;max-width:100%;border-radius:999px;background:var(--chrome);border:2px solid #FFD43B;box-shadow:0 0 0 3px rgba(255,212,59,.22),0 8px 22px rgba(0,0,0,.45);overflow:hidden}
+#locBack{display:flex;align-items:center;gap:6px;min-width:0;min-height:52px;padding:0 14px 0 10px;border:0;background:transparent;color:var(--chrome-ink);font:800 16px/1.15 var(--body);white-space:nowrap}
+#locBack svg{flex:none;width:22px;height:22px;color:#FFD43B}
+:root[data-theme=light] #locBack svg{color:#B08600}
+#locX{flex:none;width:48px;display:grid;place-items:center;border:0;border-left:1px solid var(--chrome-line);background:transparent;color:var(--chrome-muted)}
+#locX svg{width:20px;height:20px}
+#locBack:active,#locX:active{background:rgba(127,127,127,.18)}
+body.loc-on #toast{bottom:calc(158px + var(--sab))}
+/* the white part of a bot's card is tappable (shows its window); a short orange ring when you come back to it */
+.bt-card,.br-card{cursor:pointer}
+.bt-card.loc-back,.br-card.loc-back{animation:locBack 1.2s ease-out 1}
+@keyframes locBack{0%,35%{box-shadow:0 0 0 4px #FF7A00,0 0 22px 6px rgba(255,122,0,.6)}100%{box-shadow:0 0 0 0 rgba(255,122,0,0)}}
