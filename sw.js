@@ -1,7 +1,7 @@
 /* Game plan board service worker: works offline after the first visit and picks up new versions promptly. */
-const VERSION = 'gpb-v7.0';
-const SHELL = ['./', './index.html', './styles.css?v=v7.0', './media-db.js?v=v7.0', './board.js?v=v7.0', './gestures.js?v=v7.0',
-  './save-open.js?v=v7.0', './app.js?v=v7.0', './github-sync.js?v=v7.0', './directshare.js?v=v7.0', './botresponse.js?v=v7.0', './botboard.js?v=v7.0', './locate.js?v=v7.0', './timeline.js?v=v7.0', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
+const VERSION = 'gpb-v7.1';
+const SHELL = ['./', './index.html', './styles.css?v=v7.1', './media-db.js?v=v7.1', './board.js?v=v7.1', './gestures.js?v=v7.1',
+  './save-open.js?v=v7.1', './app.js?v=v7.1', './github-sync.js?v=v7.1', './directshare.js?v=v7.1', './botresponse.js?v=v7.1', './botboard.js?v=v7.1', './locate.js?v=v7.1', './timeline.js?v=v7.1', './botboardshare.js?v=v7.1', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png',
   './icons/icon-maskable-512.png', './icons/apple-touch-icon.png', './media/botresponse-seed-room.jpg'];
 
 self.addEventListener('install', e => {

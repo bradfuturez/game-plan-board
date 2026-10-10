@@ -14,6 +14,13 @@ const TL_KEY = 'gpb.timeline.v1', TLV_KEY = 'gpb.timeline.view', TL_UNPLACED = '
 const TL_LW = 248, TL_GAP = 14, TL_HOLD = 260, TL_MINZ = 0.25, TL_MAXZ = 2;
 const tlView = $('#tlView'), tlStage = $('#tlStage'), tlWorld = $('#tlWorld'), tlStatusEl = $('#tlStatus');
 let TL = tlLoadLocal(), TLV = tlLoadView(), tlOpenNow = false, tlSaveT = 0, tlBusy = false, tlState = '', tlFromLocate = false;
+// v7.1 BotBoardShare: a bot's board with eras can be shown here READ-ONLY. tlSrc = {eras, placements, bot}; Brad's TL / timeline.json are untouched.
+let tlSrc = null, tlMineView = null;
+function tlSetSource(src) {
+  if (src) { if (!tlSrc) tlMineView = TLV; TLV = null; tlSrc = src; }
+  else if (tlSrc) { tlSrc = null; TLV = tlMineView; tlMineView = null; }
+  document.body.classList.toggle('tl-ro', !!tlSrc);
+}
 
 function tlLoadLocal() {
   try { const d = JSON.parse(localStorage.getItem(TL_KEY) || 'null'); if (d && typeof d === 'object') return { eras: Array.isArray(d.eras) ? d.eras : null, placements: d.placements || {}, pending: d.pending || {}, updatedAt: d.updatedAt || '', savedAt: d.savedAt || '' }; } catch (_) {}
@@ -22,11 +29,12 @@ function tlLoadLocal() {
 function tlPersist() { try { localStorage.setItem(TL_KEY, JSON.stringify(TL)); } catch (_) {} }
 function tlLoadView() { try { const v = JSON.parse(localStorage.getItem(TLV_KEY) || 'null'); if (v && isFinite(v.x) && isFinite(v.y) && v.z > 0) return v; } catch (_) {} return null; }
 function tlEras() { // the lanes, Unplaced always last
-  const list = (TL.eras || []).filter(e => e && e.id && e.id !== TL_UNPLACED);
-  const un = (TL.eras || []).find(e => e && e.id === TL_UNPLACED) || { id: TL_UNPLACED, label: 'Unplaced' };
+  const src = tlSrc || TL;
+  const list = (src.eras || []).filter(e => e && e.id && e.id !== TL_UNPLACED);
+  const un = (src.eras || []).find(e => e && e.id === TL_UNPLACED) || { id: TL_UNPLACED, label: 'Unplaced' };
   return [...list, un];
 }
-function tlEraOf(id) { const e = TL.placements[id]; return e && tlEras().some(x => x.id === e) ? e : TL_UNPLACED; }
+function tlEraOf(id) { const e = (tlSrc || TL).placements[id]; return e && tlEras().some(x => x.id === e) ? e : TL_UNPLACED; }
 function tlPreview(notes) { const t = String(notes || '').replace(/\s+/g, ' ').trim(); return t.length > 110 ? t.slice(0, 107).replace(/\s+\S*$/, '') + '…' : t; }
 
 /* ---------- drawing ---------- */
@@ -39,7 +47,7 @@ function tlRender() {
       `<header class="tl-lh"><span class="tl-n">${e.id === TL_UNPLACED ? '?' : i + 1}</span><span class="tl-lt"><b>${esc(e.label || e.id)}</b>${e.note ? `<small>${esc(e.note)}</small>` : ''}</span><span class="tl-c">${cs.length}</span></header>` +
       `<div class="tl-cards">${cs.map(c => `<article class="tl-card${c.main ? ' main' : ''}" data-id="${esc(c.id)}">${c.main ? '<span class="tl-mt">Main window</span>' : ''}<h4>${esc(c.title || 'Untitled')}</h4>${tlPreview(c.notes) ? `<p>${esc(tlPreview(c.notes))}</p>` : ''}</article>`).join('')}` +
       `${cs.length ? '' : '<div class="tl-empty">Drag a card here</div>'}</div></section>`; }).join('');
-  $('#tlSetup').hidden = !!TL.eras;
+  $('#tlSetup').hidden = !!(tlSrc || TL.eras);
   $('#tlNone').hidden = S.cards.length > 0;
   tlApply();
 }
@@ -54,7 +62,7 @@ function tlFit(save = true) {
   if (save) tlSaveView();
   if (save) tlApply();
 }
-function tlSaveView() { try { localStorage.setItem(TLV_KEY, JSON.stringify(TLV)); } catch (_) {} }
+function tlSaveView() { if (tlSrc) return; try { localStorage.setItem(TLV_KEY, JSON.stringify(TLV)); } catch (_) {} }
 function tlZoomAt(cx, cy, f) {
   const r = tlStage.getBoundingClientRect(), mx = cx - r.left, my = cy - r.top, z = clamp(TLV.z * f, TL_MINZ, TL_MAXZ);
   const wx = (mx - TLV.x) / TLV.z, wy = (my - TLV.y) / TLV.z; TLV = { x: mx - wx * z, y: my - wy * z, z }; tlApply(); tlSaveView();
@@ -69,6 +77,9 @@ function tlOpen() {
   tlOpenNow = true; tlView.hidden = false; document.body.classList.add('tl-on');
   if (history.state && (history.state.sheet || history.state.locate)) history.replaceState({ timeline: 1 }, ''); else history.pushState({ timeline: 1 }, '');
   tlRender();
+  $('#tlHead').textContent = tlSrc ? `${tlSrc.bot || 'Bot'}'s time line` : 'Game time line';
+  $('#tlHint').textContent = tlSrc ? 'View only · Tap a card to see it on the board' : 'Hold a card, then drag it to another era · Tap a card to see it on the board';
+  if (tlSrc) { tlStatus(`<b>${esc(tlSrc.bot || 'A bot')}</b>'s time line · view only`, 'ro'); return; }
   tlStatus(TL.savedAt ? tlSavedText() : '', '');
   tlFetch();
 }
@@ -139,6 +150,7 @@ addEventListener('online', () => { if (Object.keys(TL.pending).length) tlSaveNow
 
 /* ---------- moving a card to another era ---------- */
 function tlMove(id, era, quiet) {
+  if (tlSrc) return false; // a bot's time line is view-only
   const c = byId(id); if (!c || !tlEras().some(e => e.id === era)) return false;
   const from = tlEraOf(id); if (from === era) return false;
   if (era === TL_UNPLACED) delete TL.placements[id]; else TL.placements[id] = era;
@@ -152,6 +164,7 @@ function tlMove(id, era, quiet) {
 const tlPts = new Map(); let tlG = null, tlDrag = null, tlPinch = null, tlEdgeRAF = 0;
 function tlLaneAt(cx) { const r = tlStage.getBoundingClientRect(), wx = (cx - r.left - TLV.x) / TLV.z, eras = tlEras(); return eras[clamp(Math.floor((wx + TL_GAP / 2) / (TL_LW + TL_GAP)), 0, eras.length - 1)].id; }
 function tlStartDrag(g) {
+  if (tlSrc) { toast('This is a bot\'s time line. It is view only.'); return; }
   const el = tlWorld.querySelector(`.tl-card[data-id="${CSS.escape(g.id)}"]`); if (!el) return;
   const r = el.getBoundingClientRect(), ghost = el.cloneNode(true);
   ghost.classList.add('tl-ghost'); ghost.style.width = (r.width / TLV.z) + 'px'; ghost.style.transform = `scale(${TLV.z})`;
@@ -251,5 +264,5 @@ function tlLocLabel(on) {
   locEnd = function () { const r = _end.apply(this, arguments); if (tlFromLocate) { tlFromLocate = false; tlLocLabel(false); } return r; };
 }
 
-window.__gpb.tl = { open: tlOpen, close: tlClose, move: tlMove, fetch: tlFetch, save: tlSaveNow, locate: tlLocate, eraOf: tlEraOf,
+window.__gpb.tl = { setSource: tlSetSource, get source() { return tlSrc; }, open: tlOpen, close: tlClose, move: tlMove, fetch: tlFetch, save: tlSaveNow, locate: tlLocate, eraOf: tlEraOf,
   get data() { return JSON.parse(JSON.stringify(TL)); }, get view() { return { ...TLV }; }, set view(v) { TLV = { ...v }; tlApply(); tlSaveView(); }, get isOpen() { return tlOpenNow; }, get dragging() { return !!tlDrag; } };

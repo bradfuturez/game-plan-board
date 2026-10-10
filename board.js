@@ -63,7 +63,9 @@ let band = null;          // dashed orange rope following the finger: {from, pt}
 let saveT = 0;
 function persist() {
   clearTimeout(saveT); saveT = 0;
-  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  // v7.1 BotBoardShare: while a bot's board is on screen, S is that (view-only) board; only Brad's own board is ever saved
+  const mine = typeof bbsMine === 'function' ? bbsMine() : null;
+  try { localStorage.setItem(KEY, JSON.stringify(mine || S)); }
   catch (e) { toast('Could not autosave on this phone. Press SAVE to keep a copy.'); }
 }
 function changed() { updateCount(); clearTimeout(saveT); saveT = setTimeout(persist, 250); }
@@ -352,6 +354,7 @@ $('#toastBtn').addEventListener('click', () => { const f = toastFn; $('#toast').
 
 /* ---------- add / delete ---------- */
 function addCard(wx, wy) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return null; // v7.1: bot boards are view-only
   if (wx == null) { const n = S.cards.length % 5, c = viewCenter(); wx = c.x - 88 + n * 14; wy = c.y - 70 + n * 14; }
   else { wx -= 88; wy -= PIN_Y + 10; }
   const c = { id: uid(), x: Math.round(wx), y: Math.round(wy), title: '', notes: '', tilt: rndTilt() };
@@ -360,6 +363,7 @@ function addCard(wx, wy) {
   return c;
 }
 function deleteCard(id) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return () => {};
   const arm = snap(), c = byId(id); if (!c) return arm;
   itemsIn(id).forEach((it, k) => { it.in = null; it.x = c.x + k * 20; it.y = c.y + k * 20; placeItem(it); }); // photos stay on the board
   S.cards = S.cards.filter(x => x.id !== id);
@@ -368,6 +372,7 @@ function deleteCard(id) {
   return arm;
 }
 function removeItem(id) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const it = itemById(id); if (!it) return;
   const arm = snap(), host = it.in && byId(it.in);
   S.items = S.items.filter(i => i.id !== id); removeItemEl(id);

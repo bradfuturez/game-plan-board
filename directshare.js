@@ -67,6 +67,7 @@ async function dsFetchMedia(m) {
 function dsWhen(s) { const d = new Date(s); return isNaN(d) ? '' : d.toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
 
 async function dsDeliver() {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   if (dsBusy) return;
   if (!localStorage.getItem(PASS_KEY)) {
     let wrong = false;

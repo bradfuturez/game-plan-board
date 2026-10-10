@@ -21,6 +21,7 @@ function boardEnvelope(media, extra) {
     botResponses: typeof brExport === 'function' ? brExport() : [] }, extra || {});
 }
 async function saveFile() {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return; // v7.1: never save a bot board as yours
   persist();
   const total = S.items.reduce((s, i) => s + (i.size || 0), 0);
   if (total > BIG_SAVE && !confirm(`Your photos and videos add up to about ${mb(total)}. The save file will be large and may take a while. Continue?`)) return;
@@ -37,6 +38,7 @@ async function saveFile() {
     (missing ? `<br>${missing} item(s) could not be read` : ''), { ms: 5000 });
 }
 async function openFile(f) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   try {
     const d = JSON.parse(await f.text());
     const b = d && d.board ? d.board : d;

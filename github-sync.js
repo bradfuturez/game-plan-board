@@ -66,7 +66,7 @@ const progress = html => toast('<span class="spin" aria-hidden="true"></span>' +
 
 const OFFLINE_MSG = "📶 You're offline right now.<br>Try <b>Update to GitHub</b> again when you're connected.";
 async function updateToGitHub(typed) {
-  if (syncing) return;
+  if (syncing || (typeof bbsGuard === 'function' && bbsGuard())) return; // v7.1: only Brad's own board goes to GitHub
   if (!navigator.onLine) { toast(OFFLINE_MSG, { ms: 6000 }); return; }
   let pass = typed || localStorage.getItem(PASS_KEY);
   if (!pass) { pass = await askPasscode(false); if (!pass) return; }

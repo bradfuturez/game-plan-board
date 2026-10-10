@@ -195,6 +195,7 @@ function bbShow(id) {
 
 /* ---------- Yes / No ---------- */
 function bbDecide(key, answer) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const t = bbTargets().find(x => x.key === key); if (!t || BR.decisions[key]) return;
   const c = t.c, w = t.card, rec = { answer, at: new Date().toISOString(), applied: false };
   let msg = '', arm = null;

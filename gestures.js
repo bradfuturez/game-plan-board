@@ -8,11 +8,13 @@ let linkFrom = null, olinkFrom = null, pendingFocus = 0, lastCardTap = null, sup
 /* ---------- linking ---------- */
 function showLinkBar(text, orange) { const b = $('#linkBar'); b.querySelector('span').textContent = text; b.classList.toggle('orange', !!orange); b.hidden = false; }
 function startLink(id) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   cancelLinks(); blurEditing(); linkFrom = id;
   cardEls.get(id)?.classList.add('linking'); pinEls.get(id)?.classList.add('linking');
   stage.classList.add('connecting'); showLinkBar('Now tap another window to tie the red string');
 }
 function startOLink(id) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   cancelLinks(); blurEditing(); olinkFrom = id;
   cardEls.get(id)?.classList.add('olink'); stage.classList.add('connecting');
   showLinkBar('Now double-tap another window to tie the orange rope', true);
@@ -26,12 +28,14 @@ function cancelLinks() {
   stage.classList.remove('connecting'); $('#linkBar').hidden = true; renderThreads();
 }
 function tie(a, b, kind) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) { cancelLinks(); return; }
   cancelLinks(); if (a === b) return;
   if (S.threads.some(t => t.kind === kind && ((t.a === a && t.b === b) || (t.a === b && t.b === a)))) { toast('Those windows are already tied'); return; }
   S.threads.push({ a, b, kind }); renderThreads(); changed();
   toast(kind === 'orange' ? 'Orange rope tied' : 'String tied');
 }
 function removeThread(i) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const t = S.threads[i]; if (!t) return;
   const arm = snap(); S.threads.splice(i, 1); renderThreads(); changed();
   toast(t.kind === 'orange' ? 'Rope cut' : 'String cut', { undo: true }); arm();
@@ -39,6 +43,7 @@ function removeThread(i) {
 
 /* ---------- typing inside a window ---------- */
 function focusField(id, which = 'ct') {
+  if (typeof bbsGuard === 'function' && bbsGuard(true)) return; // v7.1: bot boards: no typing
   const c = byId(id), el = cardEls.get(id); if (!c || !el) return;
   clearTimeout(pendingFocus); cancelLinks();
   bringToFront(id); // (moving the element would drop focus, so do it first)
@@ -92,6 +97,7 @@ const ICON = {
   trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
   cut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M8 16L19 4M16 16L5 4"/></svg>',
   view: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  boards: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="5" width="11" height="9" rx="1.5"/><rect x="10" y="10" width="11" height="9" rx="1.5" fill="var(--chrome)"/><path d="M13 14.5h5M13 17h3"/></svg>',
   out: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/></svg>'
 };
 function openCtx(x, y, items) {
@@ -108,6 +114,8 @@ function openCtx(x, y, items) {
     const b = document.createElement('button'); b.setAttribute('role', 'menuitem');
     if (it.danger) b.className = 'danger';
     b.innerHTML = (ICON[it.icon] || '') + '<span></span>'; b.querySelector('span').textContent = it.label;
+    if (it.id) b.id = it.id;
+    if (it.dot) b.insertAdjacentHTML('beforeend', '<i class="ctx-rdot" aria-label="new"></i>'); // v7.1: red dot (a bot shared or updated a board)
     b.addEventListener('click', () => { closeCtx(); it.fn(); });
     m.appendChild(b);
   });
@@ -122,9 +130,11 @@ function openCtx(x, y, items) {
 function closeCtx() { $('#ctx').hidden = true; }
 $('#ctx .ctx-bd').addEventListener('pointerup', () => { if (performance.now() - ctxAt > 350) closeCtx(); });
 function onHold(kind, id, x, y) {
+  if (typeof bbsOnHold === 'function' && bbsOnHold(kind, id, x, y)) return; // v7.1: a bot's board has its own (view-only) menu
   if (kind === 'bg') {
     const w = screenToWorld(x, y);
     openCtx(x, y, [{ label: 'New window', icon: 'add', fn: () => addCard(w.x, w.y) },
+                   { label: 'BotBoardShare', icon: 'boards', id: 'ctxBBS', dot: typeof bbsUnseen === 'function' && bbsUnseen() > 0, fn: () => bbsPicker() }, // v7.1: see the boards your bots share
                    { label: 'Import photos, videos, files', icon: 'img', fn: () => pickMedia(w) }]);
   } else if (kind === 'card') {
     const isMain = !!byId(id)?.main;
@@ -142,6 +152,7 @@ function onHold(kind, id, x, y) {
 }
 /* ---------- Main Window (v6.6): the hub of a web of windows tied by ropes. More than one is allowed (e.g. one per bot work area). ---------- */
 function setMain(id, on) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const c = byId(id); if (!c) return;
   const arm = snap();
   if (on) c.main = true; else delete c.main;

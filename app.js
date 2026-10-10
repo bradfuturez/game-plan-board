@@ -29,8 +29,9 @@ addEventListener('keydown', e => {
 
 /* ---------- importing photos, videos and files ---------- */
 let importAt = null;
-function pickMedia(at) { importAt = at || viewCenter(); $('#mediaInput').click(); }
+function pickMedia(at) { if (typeof bbsGuard === 'function' && bbsGuard()) return; importAt = at || viewCenter(); $('#mediaInput').click(); }
 async function importFiles(files) {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const at = importAt || viewCenter(); importAt = null;
   let n = 0, failed = 0;
   for (const f of files) {
@@ -88,6 +89,7 @@ $('#mTheme').addEventListener('click', () => { toggleTheme(); closeSheet(); });
 $('#mHelp').addEventListener('click', () => showSheet('#helpSheet'));
 $('#mInstall').addEventListener('click', () => { closeSheet(); if (installEvt) { installEvt.prompt(); installEvt = null; $('#mInstall').hidden = true; } });
 $('#mNew').addEventListener('click', () => {
+  if (typeof bbsGuard === 'function' && bbsGuard()) return;
   const arm = snap(); closeSheet(); cancelLinks();
   S = { title: 'Game plan board', cards: [], threads: [], items: [], view: null }; renderAll(); changed(); persist();
   toast('New empty board', { undo: true }); arm();

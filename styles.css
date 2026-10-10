@@ -456,3 +456,67 @@ body.tl-on #toast{bottom:calc(52px + var(--sab))}
 body.loc-tlsrc .card.loc-glow:not(.drop)::after{content:"▲ Your time line card"}
 /* phones: the tab drops its icon so the board title keeps its room (Galaxy S25 Ultra = 412 px wide) */
 @media (max-width:460px){.tl-tab svg{display:none}.tl-tab{max-width:76px;padding:2px 7px;text-align:center;justify-content:center}}
+
+/* ---------- v7.1 BotBoardShare: a bot's own board on screen (view only) ---------- */
+.ctx-menu button{position:relative}
+.ctx-rdot{position:absolute;right:12px;top:50%;width:11px;height:11px;margin-top:-5.5px;border-radius:50%;background:#FF3B2F;box-shadow:0 0 0 2px var(--chrome),0 0 8px 2px rgba(255,59,47,.75)}
+.menu-list .bbs-item{position:relative}
+.menu-list .bbs-item.bbs-new{border-color:rgba(255,59,47,.6)}
+#bbsBar{flex:none;display:flex;align-items:center;gap:8px;padding:7px 8px 7px 12px;background:linear-gradient(90deg,#123B4A,#1B2E45);border-bottom:2px solid #22D3EE;color:#E6F7FB}
+:root[data-theme=light] #bbsBar{background:linear-gradient(90deg,#CFF3FA,#E3EEFB);color:#0B3442;border-bottom-color:#0891B2}
+#bbsBar[hidden]{display:none}
+.bbs-who{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.bbs-who svg{flex:none;width:22px;height:22px;color:#22D3EE}
+:root[data-theme=light] .bbs-who svg{color:#0E7490}
+.bbs-who span{min-width:0;display:flex;flex-direction:column}
+.bbs-who b{font:800 15px/1.2 var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbs-who small{font-size:12px;line-height:1.25;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbs-btns{flex:none;display:flex;gap:6px}
+.bbs-btns button{min-height:40px;padding:0 10px;border-radius:10px;border:1px solid rgba(127,127,127,.45);background:rgba(127,127,127,.14);color:inherit;font:700 13px/1.1 var(--body)}
+.bbs-btns .bbs-home{background:#22D3EE;border-color:transparent;color:#062A33;font-weight:800;max-width:96px}
+.bbs-btns button[hidden]{display:none}
+/* on a bot board nothing can be edited: windows / photos / ropes ignore the pointer (the board pans from anywhere, taps open them to read) */
+body.bbs-on #cards .card,body.bbs-on .pin,body.bbs-on .mi,body.bbs-on #hits path{pointer-events:none}
+body.bbs-on .toolbar,body.bbs-on #botTabs,body.bbs-on #tlBtn,body.bbs-on #empty{display:none}
+body.bbs-on #stage{box-shadow:inset 0 0 0 3px rgba(34,211,238,.35)}
+body.bbs-on #title{cursor:default}
+body.bbs-on #toast{bottom:calc(20px + var(--sab))}
+.bbs-panel{max-height:88%}
+.bbs-intro{margin:-6px 0 12px;font-size:14px;line-height:1.4;color:var(--chrome-muted)}
+.bbs-row{width:100%;display:flex;align-items:center;gap:12px;margin:0 0 8px;padding:12px;border-radius:14px;border:1.5px solid var(--chrome-line);background:rgba(127,127,127,.08);color:var(--chrome-ink);text-align:left}
+.bbs-row.on{border-color:#22D3EE;background:rgba(34,211,238,.10)}
+.bbs-row.busy{opacity:.6}
+.bbs-row:active{filter:brightness(.95)}
+.bbs-ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:#22D3EE;color:#062A33;font:800 18px/1 var(--display)}
+.bbs-mine .bbs-ic{background:var(--pin);color:#23262B}
+.bbs-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.bbs-txt b{font:700 16px/1.25 var(--display);overflow-wrap:anywhere}
+.bbs-t{font-size:14px;line-height:1.3;overflow-wrap:anywhere}
+.bbs-txt small{font-size:12.5px;color:var(--chrome-muted)}
+.bbs-on-tag,.bbs-new-tag{flex:none;padding:3px 9px;border-radius:999px;font:800 12px/1.3 var(--body)}
+.bbs-on-tag{background:rgba(34,211,238,.18);color:#22D3EE}
+:root[data-theme=light] .bbs-on-tag{color:#0E7490}
+.bbs-new-tag{display:flex;align-items:center;gap:5px;background:rgba(255,59,47,.14);color:#FF6B60}
+.bbs-new-tag i{width:9px;height:9px;border-radius:50%;background:#FF3B2F;box-shadow:0 0 6px 1px rgba(255,59,47,.8)}
+.bbs-sep{margin:14px 2px 8px;font:800 12px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--chrome-muted)}
+.bbs-note{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:12px 4px;font-size:14px;line-height:1.4;color:var(--chrome-muted)}
+.bbs-note .spin{display:inline-block;width:12px;height:12px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gpbspin .8s linear infinite;vertical-align:-1px}
+.bbs-win{max-height:88%}
+.bbs-wtag{display:inline-block;margin:2px 0 0;padding:2px 9px;border-radius:999px;background:rgba(34,211,238,.16);color:#22D3EE;font:800 12px/1.5 var(--body)}
+:root[data-theme=light] .bbs-wtag{color:#0E7490}
+#bbsWin.main .bbs-wtag{background:rgba(168,85,247,.2);color:#C084FC}
+#bbsWin h2{margin:8px 0 8px}
+#bbsWinBody{padding:12px 14px;border-radius:12px;background:var(--card);color:var(--card-ink);font-size:16px;line-height:1.45;overflow-wrap:anywhere}
+#bbsWinBody p{margin:0 0 10px}#bbsWinBody p:last-child{margin:0}
+.bbs-empty{color:var(--card-muted)}
+#bbsWinMedia{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 0}
+.bbs-wm{min-height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--chrome-line);background:rgba(127,127,127,.12);color:var(--chrome-ink);font:700 14px/1.2 var(--body)}
+body.tl-ro .tl-status{color:#22D3EE}
+@media (max-width:600px){ /* phones: whose board on its own line (never cut off), the buttons under it */
+  #bbsBar{flex-wrap:wrap;row-gap:6px;padding:7px 10px}
+  .bbs-who{flex:1 1 100%}
+  .bbs-who b{white-space:normal;overflow-wrap:anywhere;font-size:16px}
+  .bbs-btns{flex:1 1 100%}
+  .bbs-btns button{flex:1 1 auto}
+  .bbs-btns .bbs-home{max-width:none;flex:2 1 auto}
+}
