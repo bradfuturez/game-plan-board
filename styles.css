@@ -399,3 +399,60 @@ body.loc-on #toast{bottom:calc(158px + var(--sab))}
 .bt-card,.br-card{cursor:pointer}
 .bt-card.loc-back,.br-card.loc-back{animation:locBack 1.2s ease-out 1}
 @keyframes locBack{0%,35%{box-shadow:0 0 0 4px #FF7A00,0 0 22px 6px rgba(255,122,0,.6)}100%{box-shadow:0 0 0 0 rgba(255,122,0,0)}}
+
+/* ---------- v7.0: Game time line. A tab in the header + a SEPARATE full-screen view (the board underneath is untouched) ---------- */
+.tl-tab{flex:none;display:flex;align-items:center;gap:6px;min-height:44px;max-width:112px;padding:3px 10px 3px 8px;border-radius:12px;border:1.5px solid rgba(56,189,248,.65);background:rgba(56,189,248,.12);color:var(--chrome-ink);font:700 12.5px/1.1 var(--body);text-align:left}
+.tl-tab svg{flex:none;width:20px;height:20px;color:#38BDF8}
+:root[data-theme=light] .tl-tab{border-color:rgba(3,105,161,.5);background:rgba(3,105,161,.08)}
+:root[data-theme=light] .tl-tab svg{color:#0369A1}
+.tl-tab:active{transform:translateY(1px);filter:brightness(.95)}
+#tlView{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--canvas);padding-left:var(--sal);padding-right:var(--sar)}
+#tlView[hidden]{display:none}
+.tl-bar{flex:none;display:flex;align-items:center;gap:8px;padding:calc(6px + var(--sat)) 12px 4px 6px;background:var(--chrome)}
+.tl-bar h2{flex:1;min-width:0;margin:0;font:700 21px/1.2 var(--display);color:var(--chrome-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-back{flex:none;display:flex;align-items:center;gap:4px;min-height:44px;padding:0 12px 0 6px;border:0;border-radius:12px;background:transparent;color:var(--chrome-ink);font:800 16px/1 var(--body)}
+.tl-back svg{width:22px;height:22px;color:#38BDF8}
+.tl-back:active{background:rgba(127,127,127,.18)}
+.tl-sub{flex:none;display:flex;align-items:center;gap:10px;min-height:34px;padding:0 14px 6px;background:var(--chrome);border-bottom:1px solid var(--chrome-line);font-size:13px;color:var(--chrome-muted)}
+.tl-status{flex:1;min-width:0}
+.tl-status .ok{color:#34D399;font-weight:700}
+:root[data-theme=light] .tl-status .ok{color:#15803D}
+.tl-status.tl-warn{color:#FBBF24}
+:root[data-theme=light] .tl-status.tl-warn{color:#92400E}
+.tl-status .spin{display:inline-block;width:12px;height:12px;margin-right:6px;vertical-align:-1px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:gpbspin .8s linear infinite}
+.tl-connect{flex:none;min-height:34px;padding:0 14px;border-radius:999px;border:0;background:var(--pin);color:#23262B;font:800 14px/1 var(--body)}
+#tlStage{position:relative;flex:1;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;cursor:grab}
+#tlStage.panning{cursor:grabbing}
+#tlWorld{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+.tl-lane{position:absolute;top:0;padding:0 0 18px;border-radius:16px;background:rgba(127,127,127,.10);border:1.5px solid var(--chrome-line);transition:background .12s,border-color .12s,box-shadow .12s}
+.tl-lane.tl-un{border-style:dashed}
+.tl-lane.tl-over{border-color:#38BDF8;background:rgba(56,189,248,.16);box-shadow:0 0 0 3px rgba(56,189,248,.28)}
+.tl-lh{display:flex;align-items:flex-start;gap:8px;padding:10px 10px 8px;border-bottom:1px solid var(--chrome-line);color:var(--chrome-ink)}
+.tl-n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:#38BDF8;color:#082F49;font:800 14px/1 var(--body)}
+.tl-un .tl-n{background:var(--chrome-muted);color:var(--canvas)}
+.tl-lt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.tl-lt b{font:700 16px/1.2 var(--display);overflow-wrap:anywhere}
+.tl-lt small{font-size:12.5px;line-height:1.3;color:var(--chrome-muted)}
+.tl-c{flex:none;min-width:26px;height:22px;padding:0 7px;border-radius:11px;background:rgba(127,127,127,.22);font:800 12.5px/22px var(--body);text-align:center}
+.tl-cards{display:flex;flex-direction:column;gap:8px;padding:10px 10px 0;min-height:80px}
+.tl-card{position:relative;padding:9px 11px 10px;border-radius:10px;background:var(--card);color:var(--card-ink);border:1px solid var(--card-line);box-shadow:0 4px 10px -4px var(--shadow);cursor:pointer;overflow-wrap:anywhere}
+.tl-card h4{margin:0;font:700 15px/1.25 var(--display)}
+.tl-card p{margin:4px 0 0;font-size:13px;line-height:1.35;color:var(--card-muted);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tl-card.main{border:2.5px solid #A855F7;box-shadow:0 0 0 1px rgba(168,85,247,.4),0 0 14px rgba(168,85,247,.55)}
+.tl-mt{display:inline-block;margin:0 0 4px;padding:1px 8px;border-radius:999px;background:#A855F7;color:#fff;font:800 11px/1.5 var(--body);letter-spacing:.03em}
+.tl-card.tl-lifted{opacity:.3}
+.tl-card.tl-back{animation:locBack 1.2s ease-out 1}
+.tl-ghost{position:fixed;z-index:45;margin:0;transform-origin:0 0;pointer-events:none;opacity:.95;box-shadow:0 18px 34px -8px rgba(0,0,0,.6),0 0 0 3px #38BDF8}
+.tl-empty{padding:16px 6px;border:1.5px dashed var(--chrome-line);border-radius:10px;text-align:center;font-size:13px;color:var(--chrome-muted)}
+.tl-note{position:absolute;left:12px;right:12px;bottom:76px;z-index:3;padding:12px 14px;border-radius:14px;background:var(--chrome);border:1px solid var(--chrome-line);box-shadow:0 8px 22px rgba(0,0,0,.35);font-size:14px;line-height:1.4;color:var(--chrome-ink)}
+.tl-note[hidden]{display:none}
+.tl-note>b:first-child{display:block;font-family:var(--display);font-size:16px;margin-bottom:2px}
+.tl-zoom{position:absolute;right:12px;bottom:14px;z-index:4;display:flex;flex-direction:column;gap:8px}
+.tl-zoom button{width:48px;height:48px;border-radius:14px;border:1px solid var(--chrome-line);background:var(--chrome);color:var(--chrome-ink);font-size:24px;font-weight:700;display:grid;place-items:center;box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.tl-zoom svg{width:22px;height:22px}
+.tl-hint{flex:none;padding:8px 14px calc(8px + var(--sab));background:var(--chrome);border-top:1px solid var(--chrome-line);font-size:13px;color:var(--chrome-muted);text-align:center}
+body.tl-on #toast{bottom:calc(52px + var(--sab))}
+/* a card tapped on the time line glows on the board with the v6.9 orange glow; only its tag text differs */
+body.loc-tlsrc .card.loc-glow:not(.drop)::after{content:"▲ Your time line card"}
+/* phones: the tab drops its icon so the board title keeps its room (Galaxy S25 Ultra = 412 px wide) */
+@media (max-width:460px){.tl-tab svg{display:none}.tl-tab{max-width:76px;padding:2px 7px;text-align:center;justify-content:center}}

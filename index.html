@@ -19,12 +19,14 @@
   // Set the theme before first paint (no flash).
   try{var t=localStorage.getItem('gpb.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}
 </script>
-<link rel="stylesheet" href="styles.css?v=v6.9">
+<link rel="stylesheet" href="styles.css?v=v7.0">
 </head>
 <body>
 <header>
   <input id="title" aria-label="Board title" value="Game plan board" maxlength="60" autocomplete="off" spellcheck="false" enterkeyhint="done">
   <span class="count" id="count">0 windows</span>
+  <!-- v7.0: the Game time line tab (a separate view; the board itself is not changed) -->
+  <button class="tl-tab" id="tlBtn" aria-haspopup="dialog" title="Game time line"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><circle cx="6" cy="12" r="2.2" fill="currentColor"/><circle cx="12" cy="12" r="2.2" fill="currentColor"/><circle cx="18" cy="12" r="2.2" fill="currentColor"/><path d="M6 5v3M12 16v3M18 5v3"/></svg><span>Game time<wbr> line</span></button>
   <button class="icon-btn" id="themeBtn" aria-label="Switch to light theme" title="Light / dark"></button>
 </header>
 <!-- v6.7: one tab per bot with something waiting (red count). Tap one to answer its changes Yes / No. Hidden when nothing waits. -->
@@ -143,8 +145,9 @@
     <p><b>BotResponse</b> (the tab at the bottom) glows yellow when a bot has changed its copy of your board. Tap it to see what each bot added, changed or removed, then answer <b>Yes, it matches me</b> or <b>No</b>. Tap a photo to see it full size; videos play right there; tap a file to open it. Your answer goes back to the bot.</p>
     <p><b>Bot tabs</b> (top of the screen, under the title): when a bot has changes waiting, it gets its own tab with a red number. Tap the tab to see that bot's new windows and changes, then tap <b>Yes</b> to put each one on your board or <b>No</b> to throw it away. The number goes down as you answer; the tab goes away when that bot has nothing left. Nothing pops up on the board by itself.</p>
     <p><b>Which window does the bot mean?</b> In a bot's list (a bot tab or BotResponse), tap the white part of a card (not the Yes / No buttons). The list slides away, the board moves to that window and it glows <b>orange</b> for a few seconds. For a <b>Tie</b> you see both windows (and the rope, if it's already tied). Tap <b>Back to Bot Responses</b> (or your phone's back button) to return to the same card and answer Yes or No.</p>
+    <p><b>Game time line</b> (the tab at the top, next to the window count) opens a separate view of your story: every window as a small card in era lanes, from earliest on the left to latest on the right. Windows with no era yet are in <b>Unplaced</b>. <b>Hold a card</b> for a moment, then drag it to another era. Swipe to move around, pinch to zoom. <b>Tap a card</b> to jump back to the board with that window glowing orange. Moving cards never moves or changes your windows on the board; the time line is saved to your private GitHub on its own. Tap <b>Board</b> (or your phone's back button) to go back.</p>
     <p><b>Install:</b> in Chrome, tap the ⋮ menu, then <b>Add to Home screen</b> or <b>Install app</b>.</p>
-    <p class="app-ver" id="appVer">Game plan board v6.9</p>
+    <p class="app-ver" id="appVer">Game plan board v7.0</p>
     <div class="row"><button class="btn primary" data-close>Got it</button></div>
   </div>
 </div>
@@ -159,17 +162,38 @@
   </div>
 </div>
 
+<!-- v7.0: Game time line. A separate view over the board: era lanes left to right, one compact card per board window. -->
+<section id="tlView" hidden role="dialog" aria-modal="true" aria-labelledby="tlHead">
+  <div class="tl-bar">
+    <button class="tl-back" id="tlBack" aria-label="Back to the board"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>Board</button>
+    <h2 id="tlHead">Game time line</h2>
+  </div>
+  <div class="tl-sub"><span class="tl-status" id="tlStatus"></span><button class="tl-connect" id="tlConnect" hidden>Connect</button></div>
+  <main id="tlStage" aria-label="Game time line. Swipe to move around, pinch to zoom, hold a card and drag it to another era, tap a card to see it on the board.">
+    <div id="tlWorld"></div>
+    <div class="tl-note tl-ui" id="tlSetup" hidden><b>Your eras aren't loaded yet</b>They come from your private GitHub. Tap <b>Connect</b> above (same passcode as Update to GitHub). Until then every window is in Unplaced.</div>
+    <div class="tl-note tl-ui" id="tlNone" hidden><b>No windows yet</b>Windows on your board show up here as cards.</div>
+    <div class="tl-zoom tl-ui">
+      <button id="tlZoomIn" aria-label="Zoom in">+</button>
+      <button id="tlZoomOut" aria-label="Zoom out">&minus;</button>
+      <button id="tlZoomFit" aria-label="Back to the start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </main>
+  <div class="tl-hint">Hold a card, then drag it to another era · Tap a card to see it on the board</div>
+</section>
+
 <div id="toast" role="status" aria-live="polite"><span class="msg"></span><button id="toastBtn" hidden>Undo</button></div>
 
-<script src="media-db.js?v=v6.9" defer></script>
-<script src="board.js?v=v6.9" defer></script>
-<script src="gestures.js?v=v6.9" defer></script>
-<script src="save-open.js?v=v6.9" defer></script>
-<script src="app.js?v=v6.9" defer></script>
-<script src="github-sync.js?v=v6.9" defer></script>
-<script src="directshare.js?v=v6.9" defer></script>
-<script src="botresponse.js?v=v6.9" defer></script>
-<script src="botboard.js?v=v6.9" defer></script>
-<script src="locate.js?v=v6.9" defer></script>
+<script src="media-db.js?v=v7.0" defer></script>
+<script src="board.js?v=v7.0" defer></script>
+<script src="gestures.js?v=v7.0" defer></script>
+<script src="save-open.js?v=v7.0" defer></script>
+<script src="app.js?v=v7.0" defer></script>
+<script src="github-sync.js?v=v7.0" defer></script>
+<script src="directshare.js?v=v7.0" defer></script>
+<script src="botresponse.js?v=v7.0" defer></script>
+<script src="botboard.js?v=v7.0" defer></script>
+<script src="locate.js?v=v7.0" defer></script>
+<script src="timeline.js?v=v7.0" defer></script>
 </body>
 </html>
